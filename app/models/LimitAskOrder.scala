@@ -3,6 +3,7 @@ package models
 import akka.actor.{Actor, ActorRef}
 
 import scala.concurrent.duration.FiniteDuration
+import scala.concurrent.ExecutionContext.Implicits.global
 
 
 
@@ -44,7 +45,7 @@ case class LimitAskOrder(tradingPartyRef: ActorRef,
     * @param newQuantity Desired quantity for the new order.
     * @return new limit order ask.
     */
-  def split(newQuantity: Int): AskOrderLike = {
+  def split(newQuantity: Int): OrderLike = {
     LimitAskOrder(tradingPartyRef, instrument, timeInForce, price, newQuantity)
   }
 
