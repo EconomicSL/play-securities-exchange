@@ -1,12 +1,12 @@
 import akka.actor.ActorSystem
 import akka.testkit.TestKit
-import models.LimitAskOrder
+import models.{LimitBidOrder, LimitAskOrder}
 import org.scalatest.{GivenWhenThen, FeatureSpecLike, Matchers}
 
 import scala.util.Random
 
 
-class LimitAskOrderSpec extends TestKit(ActorSystem("TestSystem")) with
+class LimitBidOrderSpec extends TestKit(ActorSystem("TestSystem")) with
   FeatureSpecLike with
   GivenWhenThen with
   Matchers {
@@ -22,22 +22,22 @@ class LimitAskOrderSpec extends TestKit(ActorSystem("TestSystem")) with
   /** Maximum number of share for testing. */
   val maxQuantity = 1000000
 
-  feature("LimitAskOrder should be able to split itself.") {
+  feature("LimitBidOrder should be able to split itself.") {
 
-    scenario("A LimitAskOrder needs to be split.") {
+    scenario("A LimitBidOrder needs to be split.") {
 
-      Given("some limit ask order")
+      Given("some limit bid order")
 
       val price = Random.nextDouble() * maxPrice
       val quantity = Random.nextInt(maxQuantity)
-      val limitAskOrder = LimitAskOrder(testActor, "GOOG", price, quantity)
+      val limitBidOrder = LimitBidOrder(testActor, "GOOG", price, quantity)
 
-      Then("that limit ask order should be able to split itself.")
+      Then("that limit bid order should be able to split itself.")
 
       val newQuantity = quantity % Random.nextInt(quantity)
-      val splitLimitAskOrder = LimitAskOrder(testActor, "GOOG", price, newQuantity)
+      val splitLimitBidOrder = LimitBidOrder(testActor, "GOOG", price, newQuantity)
 
-      limitAskOrder.split(newQuantity) should be (splitLimitAskOrder)
+      limitBidOrder.split(newQuantity) should be (splitLimitBidOrder)
     }
 
   }
