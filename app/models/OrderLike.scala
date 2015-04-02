@@ -22,6 +22,9 @@ trait OrderLike {
   /** The quantity being bought or sold. */
   def quantity: Int
 
+  /** Orders will often need to be split during the matching process. */
+  def split(newQuantity: Int): OrderLike
+
   /** The duration the order is valid for. */
   def timeInForce: Option[FiniteDuration]
 
