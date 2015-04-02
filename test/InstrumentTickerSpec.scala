@@ -1,10 +1,10 @@
 import akka.actor.ActorSystem
 import akka.testkit.{TestProbe, TestActorRef, TestKit}
-import models.{SecurityTicker, UnwatchSecurity, WatchSecurity, Tick}
+import models.{InstrumentTicker, UnwatchInstrument, WatchInstrument, Tick}
 import org.scalatest.{GivenWhenThen, Matchers, FeatureSpecLike}
 
 
-class SecurityTickerSpec extends
+class InstrumentTickerSpec extends
   TestKit(ActorSystem("TestSystem")) with
   FeatureSpecLike with
   GivenWhenThen with
@@ -15,9 +15,9 @@ class SecurityTickerSpec extends
     system.shutdown()
   }
 
-  feature("SecurityTicker should be able to add actors as watchers.") {
+  feature("InstrumentTicker should be able to add actors as watchers.") {
 
-    val tickerRef = TestActorRef(new SecurityTicker("GOOG"))
+    val tickerRef = TestActorRef(new InstrumentTicker("GOOG"))
 
     val ticker = tickerRef.underlyingActor
 
@@ -25,9 +25,9 @@ class SecurityTickerSpec extends
 
       Given("that the ticker's set of watchers is empty")
 
-      When("a WatchSecurity message is received from some actor")
+      When("a WatchInstrument message is received from some actor")
 
-        tickerRef.tell( WatchSecurity, testActor )
+        tickerRef.tell( WatchInstrument, testActor )
 
       Then("that actor should be added to the set of watchers")
 
@@ -37,9 +37,9 @@ class SecurityTickerSpec extends
 
   }
 
-  feature("SecurityTicker should be able to remove actors as watchers.") {
+  feature("InstrumentTicker should be able to remove actors as watchers.") {
 
-    val tickerRef = TestActorRef(new models.SecurityTicker("GOOG"))
+    val tickerRef = TestActorRef(new models.InstrumentTicker("GOOG"))
 
     val ticker = tickerRef.underlyingActor
 
@@ -49,9 +49,9 @@ class SecurityTickerSpec extends
 
       ticker.watchers += testActor
 
-      When("an UnwatchSecurity message is received from that actor")
+      When("an UnwatchInstrument message is received from that actor")
 
-      tickerRef.tell(UnwatchSecurity, testActor)
+      tickerRef.tell(UnwatchInstrument, testActor)
 
       Then("that actor should be removed from the set of watchers")
 
@@ -61,9 +61,9 @@ class SecurityTickerSpec extends
 
   }
 
-  feature("SecurityTicker should be able to receive and store security ticks.") {
+  feature("InstrumentTicker should be able to receive and store security ticks.") {
 
-    val tickerRef = TestActorRef(new models.SecurityTicker("GOOG"))
+    val tickerRef = TestActorRef(new models.InstrumentTicker("GOOG"))
 
     val ticker = tickerRef.underlyingActor
 
@@ -91,9 +91,9 @@ class SecurityTickerSpec extends
 
   }
 
-  feature("SecurityTicker should notify all watchers after receiving a tick.") {
+  feature("InstrumentTicker should notify all watchers after receiving a tick.") {
 
-    val tickerRef = TestActorRef(new models.SecurityTicker("GOOG"))
+    val tickerRef = TestActorRef(new models.InstrumentTicker("GOOG"))
 
     val ticker = tickerRef.underlyingActor
 

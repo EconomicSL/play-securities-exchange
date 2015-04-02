@@ -7,17 +7,17 @@ import scala.collection.immutable.HashSet
 import scala.collection.mutable
 
 
-/** Class representing a security ticker.
+/** Class representing an instrument ticker.
   *
-  * There is exactly one SecurityTicker per security symbol. Each SecurityTicker
-  * maintains a list of other actors watching the security as well as its own
+  * There is exactly one InstrumentTicker per instrument symbol. Each SecurityTicker
+  * maintains a list of other actors watching the instrument as well as its own
   * ticker history.
   *
-  * @param symbol a security ticker symbol
+  * @param symbol an instrument ticker symbol
   */
-class SecurityTicker(symbol: String) extends Actor {
+class InstrumentTicker(symbol: String) extends Actor {
 
-  /** Each ticker maintains a list of participants watching the security. */
+  /** Each ticker maintains a list of participants watching the instrument. */
   var watchers: HashSet[ActorRef] = HashSet.empty[ActorRef]
 
   /** Each ticker stores its own history. */
@@ -27,9 +27,9 @@ class SecurityTicker(symbol: String) extends Actor {
     case tick: Tick =>
       history += tick;  // add the tick to the ticker history
       watchers.foreach(_ ! tick)  // notify all watchers
-    case WatchSecurity =>
+    case WatchInstrument =>
       watchers += sender()  // add sender to the set of watchers
-    case UnwatchSecurity =>
+    case UnwatchInstrument =>
       watchers -= sender()  // remove sender from the set of watchers
   }
 
@@ -38,6 +38,6 @@ class SecurityTicker(symbol: String) extends Actor {
 
 case class Tick(symbol: String, price: Double)
 
-case object WatchSecurity
+case object WatchInstrument
 
-case object UnwatchSecurity
+case object UnwatchInstrument
