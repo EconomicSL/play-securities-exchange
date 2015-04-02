@@ -12,3 +12,13 @@ trait AskOrderLike {
   val buy = false
 
 }
+
+
+object AskOrderLike {
+
+  implicit val ordering: Ordering[AskOrderLike] = Ordering.fromLessThan {
+    case (existing: LimitAskOrder, incoming: LimitAskOrder) =>
+      incoming.price < existing.price  // LimitAskOrder with lower limit price get priority
+  }
+
+}

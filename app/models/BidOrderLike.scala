@@ -12,3 +12,13 @@ trait BidOrderLike {
   val buy = true
 
 }
+
+
+object BidOrderLike {
+
+  implicit val ordering: Ordering[BidOrderLike] = Ordering.fromLessThan {
+    case (existing: LimitBidOrder, incoming: LimitBidOrder) =>
+      incoming.price > existing.price // LimitBidOrder with higher limit price get priority
+   }
+
+}
