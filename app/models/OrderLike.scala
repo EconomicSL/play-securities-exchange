@@ -1,6 +1,6 @@
 package models
 
-import akka.actor.{Actor, ActorRef}
+import akka.actor.ActorRef
 
 import scala.concurrent.duration.FiniteDuration
 
