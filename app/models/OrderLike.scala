@@ -35,3 +35,5 @@ trait OrderLike {
   def tradingPartyRef: ActorRef
 
 }
+
+case object CancelOrder
