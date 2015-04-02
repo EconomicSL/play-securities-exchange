@@ -6,6 +6,7 @@ import akka.actor.{ActorRef, Actor}
 import scala.collection.immutable.HashSet
 import scala.collection.mutable
 
+
 /** Class representing a security ticker.
   *
   * There is exactly one SecurityTicker per security symbol. Each SecurityTicker
@@ -17,7 +18,7 @@ import scala.collection.mutable
 class SecurityTicker(symbol: String) extends Actor {
 
   /** Each ticker maintains a list of participants watching the security. */
-  protected[this] var watchers: HashSet[ActorRef] = HashSet.empty[ActorRef]
+  var watchers: HashSet[ActorRef] = HashSet.empty[ActorRef]
 
   /** Each ticker stores its own history. */
   var history: mutable.Queue[Tick] = mutable.Queue.empty[Tick]
