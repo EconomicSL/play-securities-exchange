@@ -25,9 +25,6 @@ trait OrderLike {
   /** Orders will often need to be split during the matching process. */
   def split(newQuantity: Int): OrderLike
 
-  /** The duration the order is valid for. */
-  def timeInForce: Option[FiniteDuration]
-
   /** String representation of an order. */
   def toString: String
 
@@ -35,5 +32,3 @@ trait OrderLike {
   def tradingPartyRef: ActorRef
 
 }
-
-case object CancelOrder

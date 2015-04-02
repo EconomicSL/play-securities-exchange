@@ -1,10 +1,8 @@
 package models
 
-import akka.actor.{Actor, ActorRef}
+import akka.actor.ActorRef
 
 import scala.concurrent.duration.FiniteDuration
-import scala.concurrent.ExecutionContext.Implicits.global
-
 
 
 /** Represents a limit ask order.
@@ -14,31 +12,15 @@ import scala.concurrent.ExecutionContext.Implicits.global
   *
   * @param tradingPartyRef ActorRef for the trading party submitting the order.
   * @param instrument Security for which the order is being placed.
-  * @param timeInForce Duration for which the order is in force.
   * @param price Limit price for the order.
   * @param quantity Desired quantity of the security.
   */
 case class LimitAskOrder(tradingPartyRef: ActorRef,
                          instrument: String,
-                         timeInForce: Option[FiniteDuration],
                          price: Double,
-                         quantity: Int) extends Actor with
-  OrderLike with
-  AskOrderLike with
-  LimitOrderLike {
-
-  /** If necessary, schedule the order cancellation event. */
-  override def preStart(): Unit = {
-    timeInForce match {
-      case Some(duration) => context.system.scheduler.scheduleOnce(duration, self, CancelOrder)
-      case None => // Do nothing!
-    }
-  }
-
-  def receive: Receive = {
-    case CancelOrder =>
-      context.stop(self)  // If order is cancelled, stop the Actor
-  }
+                         quantity: Int) extends
+  LimitOrderLike with
+  AskOrderLike {
 
   /** Split a limit ask order
     *
@@ -46,12 +28,8 @@ case class LimitAskOrder(tradingPartyRef: ActorRef,
     * @return new limit order ask.
     */
   def split(newQuantity: Int): OrderLike = {
-    LimitAskOrder(tradingPartyRef, instrument, timeInForce, price, newQuantity)
-  }
-
-  /** String representation of a limit ask order. */
-  override def toString: String = {
-    s",${tradingPartyRef.path.name},$getClass,$instrument,$price,$quantity"
+    LimitAskOrder(tradingPartyRef, instrument, price, newQuantity)
   }
 
 }
+
