@@ -1,0 +1,11 @@
+language: scala
+
+scala:
+   - 2.11.1
+
+notifications:
+  email: false
+
+branches:
+  only:
+    - master
