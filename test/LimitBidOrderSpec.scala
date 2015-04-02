@@ -1,6 +1,6 @@
 import akka.actor.ActorSystem
 import akka.testkit.TestKit
-import models.{LimitBidOrder, LimitAskOrder}
+import models.LimitBidOrder
 import org.scalatest.{GivenWhenThen, FeatureSpecLike, Matchers}
 
 import scala.util.Random
