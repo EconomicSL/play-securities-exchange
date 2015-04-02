@@ -4,8 +4,7 @@ import models.{InstrumentTicker, UnwatchInstrument, WatchInstrument, Tick}
 import org.scalatest.{GivenWhenThen, Matchers, FeatureSpecLike}
 
 
-class InstrumentTickerSpec extends
-  TestKit(ActorSystem("TestSystem")) with
+class InstrumentTickerSpec extends TestKit(ActorSystem("TestSystem")) with
   FeatureSpecLike with
   GivenWhenThen with
   Matchers {
