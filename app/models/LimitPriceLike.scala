@@ -5,8 +5,8 @@ package models
   * The LimitOrderLike trait should be mixed-in with both AskOrderLike and BidOrderLike
   * traits to create instance of LimitAskOrder and LimitBidOrder classes.
   */
-trait PricedOrderLike {
+trait LimitPriceLike {
 
-  def price: Double
+  def limitPrice: Double
   
 }

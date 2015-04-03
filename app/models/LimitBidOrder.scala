@@ -10,15 +10,15 @@ import akka.actor.ActorRef
   *
   * @param tradingPartyRef ActorRef for the trading party submitting the order.
   * @param instrument Security for which the order is being placed.
-  * @param price Limit price for the order.
+  * @param limitPrice Limit price for the order.
   * @param quantity Desired quantity of the security.
   */
 case class LimitBidOrder(tradingPartyRef: ActorRef,
                          instrument: String,
-                         price: Double,
+                         limitPrice: Double,
                          quantity: Int) extends
   BidOrderLike with
-  PricedOrderLike {
+  LimitPriceLike {
 
   /** Crossing logic for a limit bid order.
     *
@@ -26,7 +26,7 @@ case class LimitBidOrder(tradingPartyRef: ActorRef,
     * @return true if the limit order ask cross the bid; false otherwise.
     */
   def crosses(ask: AskOrderLike): Boolean = ask match {
-    case ask: PricedOrderLike => price >= ask.price
+    case ask: LimitPriceLike => limitPrice >= ask.limitPrice
   }
 
   /** Price formation rules for a limit bid order.
@@ -35,7 +35,7 @@ case class LimitBidOrder(tradingPartyRef: ActorRef,
     * @return the trade price between a limit bid order and some ask order.
     */
   def formPrice(ask: AskOrderLike): Double = ask match {
-    case ask: PricedOrderLike => ask.price
+    case ask: LimitPriceLike => ask.limitPrice
   }
 
   /** Split a limit ask order
@@ -44,12 +44,12 @@ case class LimitBidOrder(tradingPartyRef: ActorRef,
     * @return new limit order ask.
     */
   def split(newQuantity: Int): OrderLike = {
-    LimitBidOrder(tradingPartyRef, instrument, price, newQuantity)
+    LimitBidOrder(tradingPartyRef, instrument, limitPrice, newQuantity)
   }
 
   /** String representation of a limit order. */
   override def toString: String = {
-    s",${tradingPartyRef.path.name},$getClass,$instrument,$price,$quantity"
+    s",${tradingPartyRef.path.name},$getClass,$instrument,$limitPrice,$quantity"
   }
 
 }
