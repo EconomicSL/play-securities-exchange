@@ -7,9 +7,15 @@ package models
   * orders, etc).
   *
   */
-trait AskOrderLike {
+trait AskOrderLike extends OrderLike {
 
   val buy = false
+
+  /** Whether or not the order crosses some other order. */
+  def crosses(other: BidOrderLike): Boolean
+
+  /** Price formation rules, */
+  def formPrice(other: BidOrderLike): Double
 
 }
 
@@ -18,7 +24,7 @@ object AskOrderLike {
 
   implicit val ordering: Ordering[AskOrderLike] = Ordering.fromLessThan {
     case (existing: LimitAskOrder, incoming: LimitAskOrder) =>
-      incoming.price < existing.price  // LimitAskOrder with lower limit price get priority
+      incoming.limitPrice < existing.limitPrice  // LimitAskOrder with lower limit price get priority
   }
 
 }
