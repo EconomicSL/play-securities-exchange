@@ -17,6 +17,10 @@ trait AskOrderLike extends OrderLike {
   /** Price formation rules. */
   def formPrice(other: BidOrderLike): Double
 
+  /** AskOrders will often need to be split during the matching process. */
+  def split(newQuantity: Int): AskOrderLike
+
+
 }
 
 
