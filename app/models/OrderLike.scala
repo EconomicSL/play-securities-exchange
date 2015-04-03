@@ -16,6 +16,12 @@ trait OrderLike {
   /** Whether the order is buy (true) or sell (false). */
   def buy: Boolean
 
+  /** Whether or not the order crosses some other order. */
+  def crosses(other: OrderLike): Boolean
+
+  /** Price formation rules, */
+  def formPrice(other: OrderLike): Double
+
   /** The unique identifier of the security. */
   def instrument: String
 
