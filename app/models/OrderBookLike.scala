@@ -25,7 +25,7 @@ case class AskOrderBook(instrument: String) extends
 
     bestLimitAskOrder match {
       case Some(ask: LimitAskOrder) => Some(ask)
-      case _ => None
+      case None => None
     }
   }
 
@@ -41,7 +41,7 @@ case class BidOrderBook(instrument: String) extends
 
     bestLimitOrderBid match {
       case Some(bid: LimitBidOrder) => Some(bid)
-      case _ => None
+      case None => None
     }
   }
 
