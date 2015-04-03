@@ -66,7 +66,7 @@ class LimitBidOrderSpec extends TestKit(ActorSystem("TestSystem")) with
 
       val askPrice2 = (1 + Random.nextDouble()) * bidPrice
       val askQuantity2 = Random.nextInt(maxQuantity)
-      val otherLimitAskOrder = LimitBidOrder(testActor, "GOOG", askPrice2, askQuantity2)
+      val otherLimitAskOrder = LimitAskOrder(testActor, "GOOG", askPrice2, askQuantity2)
 
       Then("that limit ask order should cross with the limit bid order.")
 

@@ -11,7 +11,7 @@ sealed trait OrderBookLike {
 
   def instrument: String
 
-  def bestLimitOrder: Option[LimitOrderLike]
+  def bestLimitOrder: Option[PricedOrderLike]
 
 }
 

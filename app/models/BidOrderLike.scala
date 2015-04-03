@@ -7,9 +7,15 @@ package models
   * orders, etc).
   *
   */
-trait BidOrderLike {
+trait BidOrderLike extends OrderLike {
 
   val buy = true
+
+  /** Whether or not the order crosses some other order. */
+  def crosses(other: AskOrderLike): Boolean
+
+  /** Price formation rules, */
+  def formPrice(other: AskOrderLike): Double
 
 }
 

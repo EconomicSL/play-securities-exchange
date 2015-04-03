@@ -17,16 +17,16 @@ case class LimitBidOrder(tradingPartyRef: ActorRef,
                          instrument: String,
                          price: Double,
                          quantity: Int) extends
-  LimitOrderLike with
-  BidOrderLike {
+  BidOrderLike with
+  PricedOrderLike {
 
   /** Crossing logic for a limit bid order.
     *
     * @param ask some ask order.
     * @return true if the limit order ask cross the bid; false otherwise.
     */
-  def crosses(ask: OrderLike): Boolean = ask match {
-    case ask: LimitOrderLike => price >= ask.price
+  def crosses(ask: AskOrderLike): Boolean = ask match {
+    case ask: PricedOrderLike => price >= ask.price
   }
 
   /** Price formation rules for a limit bid order.
@@ -34,8 +34,8 @@ case class LimitBidOrder(tradingPartyRef: ActorRef,
     * @param ask some ask order.
     * @return the trade price between a limit bid order and some ask order.
     */
-  def formPrice(ask: OrderLike): Double = ask match {
-    case ask: LimitOrderLike => ask.price
+  def formPrice(ask: AskOrderLike): Double = ask match {
+    case ask: PricedOrderLike => ask.price
   }
 
   /** Split a limit ask order
@@ -45,6 +45,11 @@ case class LimitBidOrder(tradingPartyRef: ActorRef,
     */
   def split(newQuantity: Int): OrderLike = {
     LimitBidOrder(tradingPartyRef, instrument, price, newQuantity)
+  }
+
+  /** String representation of a limit order. */
+  override def toString: String = {
+    s",${tradingPartyRef.path.name},$getClass,$instrument,$price,$quantity"
   }
 
 }
