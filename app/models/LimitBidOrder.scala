@@ -20,6 +20,24 @@ case class LimitBidOrder(tradingPartyRef: ActorRef,
   LimitOrderLike with
   BidOrderLike {
 
+  /** Crossing logic for a limit bid order.
+    *
+    * @param ask some ask order.
+    * @return true if the limit order ask cross the bid; false otherwise.
+    */
+  def crosses(ask: OrderLike): Boolean = ask match {
+    case ask: LimitOrderLike => price >= ask.price
+  }
+
+  /** Price formation rules for a limit bid order.
+    *
+    * @param ask some ask order.
+    * @return the trade price between a limit bid order and some ask order.
+    */
+  def formPrice(ask: OrderLike): Double = ask match {
+    case ask: LimitOrderLike => ask.price
+  }
+
   /** Split a limit ask order
     *
     * @param newQuantity Desired quantity for the new order.
