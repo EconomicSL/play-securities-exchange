@@ -73,4 +73,28 @@ class LimitAskOrderSpec extends TestKit(ActorSystem("TestSystem")) with
 
   }
 
+  feature("Price formation rules for a LimitAskOrder.") {
+
+    scenario("Price formation between a LimitAskOrder and a LimitBidOrder") {
+
+      Given("some limit ask order")
+
+      val askPrice = Random.nextDouble() * maxPrice
+      val askQuantity = Random.nextInt(maxQuantity)
+      val limitAskOrder = LimitAskOrder(testActor, "GOOG", askPrice, askQuantity)
+
+      Given("some limit bid order whose price exceeds that of the limit ask order")
+
+      val bidPrice = (1 + Random.nextDouble()) * askPrice
+      val bidQuantity = Random.nextInt(maxQuantity)
+      val crossingLimitBidOrder = LimitBidOrder(testActor, "GOOG", bidPrice, bidQuantity)
+
+      Then("the trade price should be the limit order bid price")
+
+      limitAskOrder.formPrice(crossingLimitBidOrder) should be(bidPrice)
+
+    }
+
+  }
+
 }
