@@ -11,11 +11,14 @@ trait BidOrderLike extends OrderLike {
 
   val buy = true
 
-  /** Whether or not the order crosses some other order. */
+  /** Whether or not the bid order crosses some ask order. */
   def crosses(other: AskOrderLike): Boolean
 
-  /** Price formation rules, */
+  /** Price formation rules. */
   def formPrice(other: AskOrderLike): Double
+
+  /** BidOrders will often need to be split during the matching process. */
+  def split(newQuantity: Int): BidOrderLike
 
 }
 
