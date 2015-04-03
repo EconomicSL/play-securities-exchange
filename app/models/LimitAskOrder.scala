@@ -43,7 +43,7 @@ case class LimitAskOrder(tradingPartyRef: ActorRef,
     * @param newQuantity Desired quantity for the new order.
     * @return new limit order ask.
     */
-  def split(newQuantity: Int): OrderLike = {
+  def split(newQuantity: Int): AskOrderLike = {
     LimitAskOrder(tradingPartyRef, instrument, limitPrice, newQuantity)
   }
 
