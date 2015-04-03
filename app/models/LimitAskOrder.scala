@@ -2,8 +2,6 @@ package models
 
 import akka.actor.ActorRef
 
-import scala.concurrent.duration.FiniteDuration
-
 
 /** Represents a limit ask order.
   *
