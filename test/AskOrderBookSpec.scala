@@ -184,7 +184,7 @@ class AskOrderBookSpec extends TestKit(ActorSystem("AskOrderBookSpec")) with
 
     Then("the best existing limit ask order should be at the top of the ask order book queue.")
 
-    askOrderBook.headOption should be(askOrderBook.bestLimitOrder)
+    askOrderBook.bestLimitOrder should be(askOrderBook.headOption)
     askOrderBook.clear()
   }
 
@@ -196,7 +196,7 @@ class AskOrderBookSpec extends TestKit(ActorSystem("AskOrderBookSpec")) with
 
     Then("the best existing limit ask order should be None.")
 
-    askOrderBook.headOption should be(None)
+    askOrderBook.bestLimitOrder should be(None)
 
   }
 

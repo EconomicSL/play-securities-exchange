@@ -184,7 +184,7 @@ class BidOrderBookSpec extends TestKit(ActorSystem("BidOrderBookSpec")) with
 
     Then("the best existing limit bid order should be at the top of the bid order book queue.")
 
-    bidOrderBook.headOption should be(bidOrderBook.bestLimitOrder)
+    bidOrderBook.bestLimitOrder should be(bidOrderBook.headOption)
     bidOrderBook.clear()
   }
 
@@ -196,7 +196,7 @@ class BidOrderBookSpec extends TestKit(ActorSystem("BidOrderBookSpec")) with
 
     Then("the best existing limit bid order should be None.")
 
-    bidOrderBook.headOption should be(None)
+    bidOrderBook.bestLimitOrder should be(None)
 
   }
 
