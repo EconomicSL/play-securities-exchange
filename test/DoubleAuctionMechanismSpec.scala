@@ -3,11 +3,17 @@ import akka.testkit.{TestProbe, TestKit, TestActorRef}
 import models._
 import org.scalatest.{FeatureSpecLike, GivenWhenThen, Matchers}
 
+import scala.util.Random
+
 
 class DoubleAuctionMechanismSpec extends TestKit(ActorSystem("Securities-Exchange"))
   with FeatureSpecLike
   with GivenWhenThen
   with Matchers {
+
+  def afterAll(): Unit = {
+    system.shutdown()
+  }
 
   val testInstrument = "GOOG"
 
@@ -15,8 +21,12 @@ class DoubleAuctionMechanismSpec extends TestKit(ActorSystem("Securities-Exchang
 
   val market = marketRef.underlyingActor
 
-  def afterAll(): Unit = {
-    system.shutdown()
+  def generateRandomPrice(maxPrice: Double = 1000.0): Double = {
+    Random.nextDouble() * maxPrice
+  }
+
+  def generateRandomQuantity(maxQuantity: Int = 10000): Int = {
+    Random.nextInt(maxQuantity)
   }
 
   feature("Core matching logic for limit orders.") {
@@ -28,22 +38,26 @@ class DoubleAuctionMechanismSpec extends TestKit(ActorSystem("Securities-Exchang
 
       Given("an existing limit order ask,")
 
-      val ask1 = LimitAskOrder(seller.ref, testInstrument, 10.6, 100)
-
-      market.askOrderBook += ask1
+      val askPrice = generateRandomPrice()
+      val askQuantity = generateRandomQuantity()
+      val ask1 = LimitAskOrder(seller.ref, testInstrument, askPrice, askQuantity)
+      marketRef ! ask1
 
       When("a limit order bid is received that does not cross the existing limit order ask")
 
-      val bid1 = LimitBidOrder(buyer.ref, testInstrument, 10.5, 20)
-
+      val bidPrice = Random.nextDouble() * askPrice
+      val bidQuantity = generateRandomQuantity()
+      val bid1 = LimitBidOrder(buyer.ref, testInstrument, bidPrice, bidQuantity)
+      assert(!bid1.crosses(market.askOrderBook.head))
       marketRef ! bid1
 
-      Then("no trades are generated and both orders should remain on book.")
+      Then("no fills should be generated")
 
       // filled orders should not be generated
       seller.expectNoMsg()
       buyer.expectNoMsg()
 
+      Then("both orders should remain on book")
       // ask order should remain on the book
       market.askOrderBook.head should be(ask1)
 
@@ -56,39 +70,206 @@ class DoubleAuctionMechanismSpec extends TestKit(ActorSystem("Securities-Exchang
 
     }
 
-    scenario("An incoming limit order bid crosses with the top limit order ask.") {
+  }
+
+  feature("When incoming bid orders cross existing ask orders, the DoubleAuctionMechanism should generate fills.") {
+
+    scenario("An incoming limit order bid crosses with the top limit order ask, I") {
 
       val seller = TestProbe()
       val buyer = TestProbe()
 
-      Given("an existing limit order ask on the book for 100 shares")
+      Given("an existing limit order ask on the book")
 
-      val ask1 = LimitAskOrder(seller.ref, testInstrument, 10.4, 100)
+      val askPrice = generateRandomPrice()
+      val askQuantity = generateRandomQuantity()
+      val ask1 = LimitAskOrder(seller.ref, testInstrument, askPrice, askQuantity)
+      marketRef ! ask1
 
-      market.askOrderBook += ask1
+      When("a crossing limit order bid for the same quantity of shares is received")
 
-
-      When("a crossing limit order bid for 100 shares is received,")
-
-      val bid1 = LimitBidOrder(buyer.ref, testInstrument, 10.5, 100)
-
+      val bidPrice = (1 + Random.nextDouble()) * askPrice
+      val bid1 = LimitBidOrder(buyer.ref, testInstrument, bidPrice, askQuantity)
       marketRef ! bid1
 
       Then("a single total fill is generated at the limit order ask price.")
 
-      val trade = TotalFill(seller.ref, buyer.ref, testInstrument,
-        price = 10.4,
-        quantity = 100)
+      val fill = TotalFill(seller.ref, buyer.ref, testInstrument, askPrice, askQuantity)
 
       // expect a TotalFill to be generated
-      buyer.expectMsg[TotalFill](trade)
-      seller.expectMsg[TotalFill](trade)
+      buyer.expectMsg[TotalFill](fill)
+      seller.expectMsg[TotalFill](fill)
 
       // both books should now be empty
       market.askOrderBook.headOption should be(None)
       market.bidOrderBook.headOption should be(None)
 
     }
+
+    scenario("An incoming limit order bid crosses with the top limit order ask, II") {
+
+      val seller = TestProbe()
+      val buyer = TestProbe()
+
+      Given("an existing limit order ask on the book")
+
+      val askPrice = generateRandomPrice()
+      val askQuantity = generateRandomQuantity()
+      val ask1 = LimitAskOrder(seller.ref, testInstrument, askPrice, askQuantity)
+      marketRef ! ask1
+
+      When("a crossing limit order bid for a larger quantity of shares is received")
+
+      val bidPrice = (1 + Random.nextDouble()) * askPrice
+      val bidQuantity = generateRandomQuantity() + askQuantity
+      val bid1 = LimitBidOrder(buyer.ref, testInstrument, bidPrice, bidQuantity)
+      marketRef ! bid1
+
+      Then("a single partial fill is generated at the limit order ask price")
+
+      val fill = PartialFill(seller.ref, buyer.ref, testInstrument, askPrice, askQuantity)
+
+      // expect a PartialFill to be generated
+      buyer.expectMsg[PartialFill](fill)
+      seller.expectMsg[PartialFill](fill)
+
+      Then("the residual bid order remains on book.")
+
+      val residualQuantity = bidQuantity - askQuantity
+      val residualBid = bid1.split(residualQuantity)
+      market.askOrderBook.headOption should be(None)
+      market.bidOrderBook.head should be(residualBid)
+      market.bidOrderBook.clear()
+
+    }
+
+    scenario("An incoming limit order bid crosses with the top limit order ask, III") {
+
+      val seller = TestProbe()
+      val buyer = TestProbe()
+
+      Given("an existing limit order ask on the book")
+
+      val askPrice = generateRandomPrice()
+      val askQuantity = generateRandomQuantity()
+      val ask1 = LimitAskOrder(seller.ref, testInstrument, askPrice, askQuantity)
+      marketRef ! ask1
+
+      When("a crossing limit order bid for a smaller quantity of shares is received")
+
+      val bidPrice = (1 + Random.nextDouble()) * askPrice
+      val bidQuantity = askQuantity - generateRandomQuantity(askQuantity)
+      val bid1 = LimitBidOrder(buyer.ref, testInstrument, bidPrice, bidQuantity)
+      marketRef ! bid1
+
+      Then("a single partial fill is generated at the limit order ask price")
+
+      val fill = PartialFill(seller.ref, buyer.ref, testInstrument, askPrice, bidQuantity)
+      buyer.expectMsg[PartialFill](fill)
+      seller.expectMsg[PartialFill](fill)
+
+      Then("the residual ask order remains on book.")
+
+      val residualQuantity = askQuantity - bidQuantity
+      val residualAsk = ask1.split(residualQuantity)
+      market.askOrderBook.head should be(residualAsk)
+      market.bidOrderBook.headOption should be(None)
+      market.askOrderBook.clear()
+
+    }
+
+    scenario("An incoming limit order bid crosses multiple limit ask orders, I") {
+
+      val seller1 = TestProbe()
+      val seller2 = TestProbe()
+      val buyer = TestProbe()
+
+      Given("multiple existing limit ask orders on the book")
+
+      val askPrice1 = generateRandomPrice()
+      val askQuantity1 = generateRandomQuantity()
+      val ask1 = LimitAskOrder(seller1.ref, testInstrument, askPrice1, askQuantity1)
+      marketRef ! ask1
+
+      val askPrice2 = (1 + Random.nextDouble()) * askPrice1
+      val askQuantity2 = generateRandomQuantity()
+      val ask2 = LimitAskOrder(seller2.ref, testInstrument, askPrice2, askQuantity2)
+      marketRef ! ask2
+
+      When("a limit order bid for the total quantity of shares in both ask orders is received")
+
+      val bidPrice = (1 + Random.nextDouble()) * askPrice2
+      val bidQuantity = askQuantity1 + askQuantity2
+      val bid1 = LimitBidOrder(buyer.ref, testInstrument, bidPrice, bidQuantity)
+      marketRef ! bid1
+
+      Then("one partial fill and one total fill should be generated")
+
+      val fill1 = PartialFill(seller1.ref, buyer.ref, testInstrument, askPrice1, askQuantity1)
+      val fill2 = TotalFill(seller2.ref, buyer.ref, testInstrument, askPrice2, askQuantity2)
+      buyer.expectMsg[PartialFill](fill1)
+      seller1.expectMsg[PartialFill](fill1)
+      buyer.expectMsg[TotalFill](fill2)
+      seller2.expectMsg[TotalFill](fill2)
+
+      Then("both the ask and the bid order books should be empty.")
+
+      market.askOrderBook.headOption should be(None)
+      market.bidOrderBook.headOption should be(None)
+
+    }
+
+    scenario("An incoming limit order bid crosses multiple limit ask orders, II") {
+
+      val seller1 = TestProbe()
+      val seller2 = TestProbe()
+      val buyer = TestProbe()
+
+      Given("multiple existing limit ask orders on the book")
+
+      val askPrice1 = generateRandomPrice()
+      val askQuantity1 = generateRandomQuantity()
+      val ask1 = LimitAskOrder(seller1.ref, testInstrument, askPrice1, askQuantity1)
+      marketRef ! ask1
+
+      val askPrice2 = (1 + Random.nextDouble()) * askPrice1
+      val askQuantity2 = generateRandomQuantity()
+      val ask2 = LimitAskOrder(seller2.ref, testInstrument, askPrice2, askQuantity2)
+      marketRef ! ask2
+
+      When("a limit order bid for more than the total quantity of shares in both ask orders is received")
+
+      val bidPrice = (1 + Random.nextDouble()) * askPrice2
+      val totalAskQuantity = askQuantity1 + askQuantity2
+      val bidQuantity = generateRandomQuantity(totalAskQuantity) + totalAskQuantity
+      val bid1 = LimitBidOrder(buyer.ref, testInstrument, bidPrice, bidQuantity)
+      marketRef ! bid1
+
+      Then("two partial fills should be generated")
+
+      val fill1 = PartialFill(seller1.ref, buyer.ref, testInstrument, askPrice1, askQuantity1)
+      val fill2 = PartialFill(seller2.ref, buyer.ref, testInstrument, askPrice2, askQuantity2)
+      buyer.expectMsg[PartialFill](fill1)
+      seller1.expectMsg[PartialFill](fill1)
+      buyer.expectMsg[PartialFill](fill2)
+      seller2.expectMsg[PartialFill](fill2)
+
+      Then("the ask order book should be empty")
+
+      market.askOrderBook.headOption should be(None)
+
+      Then("the bid order book should contain a residual bid.")
+
+      val residualQuantity = bidQuantity - totalAskQuantity
+      val residualBid = bid1.split(residualQuantity)
+      market.bidOrderBook.head should be(residualBid)
+      market.bidOrderBook.clear()
+
+    }
+
+  }
+
+  feature("When incoming ask orders cross existing bid orders, the DoubleAuctionMechanism should generate fills.") {
 
     scenario("An incoming limit order ask crosses with the top limit order bid.") {
 
@@ -130,7 +311,6 @@ class DoubleAuctionMechanismSpec extends TestKit(ActorSystem("Securities-Exchang
       Given("two small limit order bids for 100 shares in total on the book")
 
       val bid1 = LimitBidOrder(buyer1.ref, testInstrument, 10.5, 20)
-
       val bid2 = LimitBidOrder(buyer2.ref, testInstrument, 10.6, 80)
 
       market.bidOrderBook +=(bid1, bid2)
@@ -168,8 +348,7 @@ class DoubleAuctionMechanismSpec extends TestKit(ActorSystem("Securities-Exchang
 
       Given("A large limit order bid and multiple small limit order asks,")
 
-      val bid1 = LimitBidOrder(buyer.ref, testInstrument, 10.5,
-        quantity = 2000)
+      val bid1 = LimitBidOrder(buyer.ref, testInstrument, 10.5, 2000)
 
       val ask1 = LimitAskOrder(seller1.ref, testInstrument, 10.4, 800)
 
@@ -229,7 +408,6 @@ class DoubleAuctionMechanismSpec extends TestKit(ActorSystem("Securities-Exchang
       // bid book should contain a residual bid
       val residualBid = largeBid.split(900)
       market.bidOrderBook.head should be(residualBid)
-
       market.bidOrderBook.clear()
     }
 
