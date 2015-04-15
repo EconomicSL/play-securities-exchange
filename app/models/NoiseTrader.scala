@@ -32,15 +32,16 @@ case class NoiseTrader(assets: mutable.Map[String, Int],
   }
 
   def decideAskQuantity(): Int = {
-    prng.nextInt() * maxQuantity
+    1 + prng.nextInt(maxQuantity)
   }
 
   def decideBidQuantity(): Int = {
-    prng.nextInt() * maxQuantity
+    1 + prng.nextInt(maxQuantity)
   }
 
   def decideInstrument(): String = {
-    prng.nextString(tickerLength)
+    val idx = prng.nextInt(assets.size)  // should sample from enumerated distribution
+    assets.keys.toList(idx)
   }
 
   def generateNewAskOrder(): AskOrderLike = {
@@ -57,6 +58,10 @@ case class NoiseTrader(assets: mutable.Map[String, Int],
     } else {
       generateNewBidOrder()
     }
+  }
+
+  override def preStart(): Unit = {
+    self ! StartTrading
   }
 
   def receive: Receive = {
