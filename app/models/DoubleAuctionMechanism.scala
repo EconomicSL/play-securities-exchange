@@ -168,7 +168,7 @@ class DoubleAuctionMechanism(val instrument: String) extends Actor with
 
 }
 
-
+case object OrderReceived
 
 
 
