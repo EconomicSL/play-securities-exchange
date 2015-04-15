@@ -13,13 +13,13 @@ case class NoiseTrader(assets: mutable.Map[String, Int],
                        prng: Random) extends Actor with
   TraderLike {
 
-  private val conf = ConfigFactory.load("traders.conf")
+  val conf = ConfigFactory.load("traders.conf")
 
-  private val maxPrice: Double = conf.getDouble("maxPrice")
+  val maxPrice: Double = conf.getDouble("maxPrice")
   
-  private val maxQuantity: Int = conf.getInt("maxQuantity")
+  val maxQuantity: Int = conf.getInt("maxQuantity")
 
-  private val askOrderProbability: Double = conf.getDouble("askOrderProbability")
+  val askOrderProbability: Double = conf.getDouble("askOrderProbability")
 
   def decideAskPrice(): Double = {
     prng.nextDouble() * maxPrice
