@@ -1,5 +1,5 @@
 import akka.actor.ActorSystem
-import akka.testkit.{TestActorRef, TestKit}
+import akka.testkit.{TestProbe, TestActorRef, TestKit}
 import models._
 import org.scalatest.{BeforeAndAfterAll, FeatureSpecLike, GivenWhenThen, Matchers}
 
@@ -18,25 +18,19 @@ class NoiseTraderSpec extends TestKit(ActorSystem("NoiseTraderSpec")) with
     system.shutdown()
   }
 
-  /* Create an instance of a Market actor. */
-  val testInstrument = "AAPL"
-
-  val marketRef = TestActorRef(new DoubleAuctionMechanism(testInstrument))
-
-  val market = marketRef.underlyingActor
-
-  /* Create an instance of a NoiseTrader for testing. */
-  val assets = mutable.Map[String, Int]((testInstrument, 0))
-
-  val cash = Double.PositiveInfinity
-
-  val prng = new Random()
-
-  val noiseTraderRef = TestActorRef(new NoiseTrader(assets, cash, marketRef, prng))
-
-  val noiseTrader = noiseTraderRef.underlyingActor
-
   feature("NoiseTrader should be able to generate new orders.") {
+
+    val assets = mutable.Map[String, Int](("APPL", 10000))
+
+    val cash = Double.PositiveInfinity
+
+    val marketRef = testActor
+
+    val prng = new Random()
+
+    val noiseTraderRef = TestActorRef(new NoiseTrader(assets, cash, marketRef, prng))
+
+    val noiseTrader = noiseTraderRef.underlyingActor
 
     scenario("NoiseTrader wants to generate a new ask order") {
 
@@ -95,6 +89,30 @@ class NoiseTraderSpec extends TestKit(ActorSystem("NoiseTraderSpec")) with
       Then("the generated order has type OrderLike.")
 
       assert(order.isInstanceOf[OrderLike])
+
+    }
+
+  }
+
+  feature("NoiseTrader should be able to send orders to the market.") {
+
+    val assets = mutable.Map[String, Int](("APPL", 10000))
+
+    val cash = Double.PositiveInfinity
+
+    val market = TestProbe()
+
+    val prng = new Random()
+
+    scenario("A NoiseTrader is created.") {
+
+      When("A NoiseTrader is created")
+
+      val noiseTraderRef = TestActorRef(new NoiseTrader(assets, cash, market.ref, prng))
+
+      Then("the NoiseTrader should start sending orders to the market.")
+
+      market.expectMsgType[OrderLike]
 
     }
 
