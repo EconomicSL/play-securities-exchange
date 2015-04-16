@@ -1,6 +1,6 @@
 import akka.actor.ActorSystem
 import akka.testkit.{TestActorRef, TestKit}
-import models.{NoiseTrader, DoubleAuctionMechanism}
+import models.{BidOrderLike, AskOrderLike, NoiseTrader, DoubleAuctionMechanism}
 import org.scalatest.{BeforeAndAfterAll, FeatureSpecLike, GivenWhenThen, Matchers}
 
 import scala.collection.mutable
@@ -30,7 +30,7 @@ class NoiseTraderSpec extends TestKit(ActorSystem("NoiseTraderSpec")) with
 
   val cash = Double.PositiveInfinity
 
-  val prng = new Random(42)
+  val prng = new Random()
 
   val noiseTraderRef = TestActorRef(new NoiseTrader(assets, cash, marketRef, prng))
 
@@ -63,6 +63,18 @@ class NoiseTraderSpec extends TestKit(ActorSystem("NoiseTraderSpec")) with
   feature("NoiseTrader should be able to specify an instrument to trade.") {
 
     noiseTrader.assets.keySet should contain (noiseTrader.decideInstrument())
+
+  }
+
+  feature("NoiseTrader should be able to generate new ask orders.") {
+
+    assert(noiseTrader.generateNewAskOrder().isInstanceOf[AskOrderLike])
+
+  }
+
+  feature("NoiseTrader should be able to specify an instrument to trade.") {
+
+    assert(noiseTrader.generateNewBidOrder().isInstanceOf[BidOrderLike])
 
   }
 
