@@ -20,6 +20,10 @@ case class LimitBidOrder(tradingPartyRef: ActorRef,
   BidOrderLike with
   LimitPriceLike {
 
+  require(limitPrice > 0, "Price must be strictly positive.")
+
+  require(quantity > 0, "Quantity must be strictly positive.")
+
   /** Crossing logic for a limit bid order.
     *
     * @param ask some ask order.

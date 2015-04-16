@@ -288,7 +288,6 @@ class DoubleAuctionMechanismSpec extends TestKit(ActorSystem("Securities-Exchang
       When("a limit order bid for less than the total quantity of shares in both ask orders is received")
 
       val bidPrice = (1 + Random.nextDouble()) * askPrice2
-      val totalAskQuantity = askQuantity1 + askQuantity2
       val bidQuantity = askQuantity1 + generateRandomQuantity(askQuantity2)
       val bid1 = LimitBidOrder(buyer.ref, testInstrument, bidPrice, bidQuantity)
       marketRef ! bid1
@@ -309,7 +308,7 @@ class DoubleAuctionMechanismSpec extends TestKit(ActorSystem("Securities-Exchang
 
       Then("the ask order book should contain a residual ask.")
 
-      val residualQuantity = totalAskQuantity - bidQuantity
+      val residualQuantity = askQuantity2 - residualBidQuantity
       val residualAsk = ask2.split(residualQuantity)
       market.askOrderBook.head should be(residualAsk)
       market.askOrderBook.clear()
@@ -534,7 +533,7 @@ class DoubleAuctionMechanismSpec extends TestKit(ActorSystem("Securities-Exchang
       When("a limit order ask for less than the total quantity of shares in both bid orders is received")
 
       val askPrice = generateRandomPrice(bidPrice1)
-      val askQuantity = bidQuantity1 + generateRandomQuantity(bidQuantity2)
+      val askQuantity = bidQuantity2 + generateRandomQuantity(bidQuantity1)
       val ask1 = LimitAskOrder(seller.ref, testInstrument, askPrice, askQuantity)
       marketRef ! ask1
 
@@ -554,8 +553,7 @@ class DoubleAuctionMechanismSpec extends TestKit(ActorSystem("Securities-Exchang
 
       Then("the bid order book should contain a residual bid.")
 
-      val totalBidQuantity = bidQuantity1 + bidQuantity2
-      val residualQuantity = totalBidQuantity - askQuantity
+      val residualQuantity = bidQuantity1 - residualAskQuantity
       val residualBid = bid1.split(residualQuantity)
       market.bidOrderBook.head should be(residualBid)
       market.bidOrderBook.clear()
