@@ -28,8 +28,10 @@ class DoubleAuctionMechanism(val instrument: String) extends Actor with
 
   /** Receive a bid (i.e. buy) or ask (i.e., sell) order for an instrument. */
   def receive = {
-    case askOrder: AskOrderLike => tryFindMatchingBid(askOrder)
-    case bidOrder: BidOrderLike => tryFindMatchingAsk(bidOrder)
+    case askOrder: AskOrderLike =>
+      sender() ! OrderReceived; tryFindMatchingBid(askOrder)
+    case bidOrder: BidOrderLike =>
+      sender() ! OrderReceived; tryFindMatchingAsk(bidOrder)
   }
 
   /** Attempt to match incoming Bid orders.
