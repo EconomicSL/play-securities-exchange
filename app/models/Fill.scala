@@ -31,6 +31,10 @@ case class PartialFill(askTradingPartyRef: ActorRef,
                        price: Double,
                        quantity: Int) extends FillLike {
 
+  require(price > 0, "Price must be strictly positive.")
+
+  require(quantity > 0, "Quantity must be strictly positive.")
+
   override def toString: String = {
     s",${askTradingPartyRef.path.name},${bidTradingPartyRef.path.name},$getClass,$instrument,$price,$quantity"
   }
@@ -50,6 +54,10 @@ case class TotalFill(askTradingPartyRef: ActorRef,
                             instrument: String,
                             price: Double,
                             quantity: Int) extends FillLike {
+
+  require(price > 0, "Price must be strictly positive.")
+
+  require(quantity > 0, "Quantity must be strictly positive.")
 
   override def toString: String = {
     s",${askTradingPartyRef.path.name},${bidTradingPartyRef.path.name},$getClass,$instrument,$price,$quantity"
