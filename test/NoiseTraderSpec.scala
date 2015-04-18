@@ -116,6 +116,23 @@ class NoiseTraderSpec extends TestKit(ActorSystem("NoiseTraderSpec")) with
 
     }
 
+    scenario("NoiseTrader should generate a new order on receipt of an OrderReceived message.") {
+
+      Given("An existing NoiseTrader")
+
+      val noiseTraderRef = TestActorRef(new NoiseTrader(assets, cash, market.ref, prng))
+      market.expectMsgType[OrderLike]  // initial order generated on start up!
+
+      When("A NoiseTrader receives an OrderReceived message")
+
+      noiseTraderRef ! OrderReceived
+
+      Then("the NoiseTrader should send a new order to the market.")
+
+      market.expectMsgType[OrderLike]
+
+    }
+
   }
 
 }
