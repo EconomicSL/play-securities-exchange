@@ -8,7 +8,7 @@ import scala.util.Random
 
 
 case class NoiseTrader(assets: mutable.Map[String, Int],
-                       cash: Double,
+                       var cash: Double,
                        market: ActorRef,
                        prng: Random) extends Actor with
   TraderLike {
