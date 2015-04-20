@@ -6,7 +6,7 @@ import ch.qos.logback.core.spi.FilterReply;
 
 
 
-public class TransactionsFilter extends Filter<ILoggingEvent> {
+public class FillsFilter extends Filter<ILoggingEvent> {
 
     @Override
     public FilterReply decide(ILoggingEvent event) {
