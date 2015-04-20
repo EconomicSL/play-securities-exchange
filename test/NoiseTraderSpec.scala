@@ -135,4 +135,93 @@ class NoiseTraderSpec extends TestKit(ActorSystem("NoiseTraderSpec")) with
 
   }
 
+  feature("NoiseTrader should be able to send Payment and Securities on request.") {
+
+    val assets = mutable.Map[String, Int](("APPL", 10000))
+
+    val cash = 1000.0
+
+    val market = TestProbe()
+
+    val prng = new Random()
+
+    val noiseTraderRef = TestActorRef(new NoiseTrader(assets, cash, market.ref, prng))
+
+    val transactionHandlerRef = TestActorRef(new TransactionHandler)
+
+    scenario("NoiseTrader receives RequestPayment") {
+
+      When("NoiseTrader receives RequestPayment from some TransactionHandler")
+
+      Then("NoiseTrader decrements its cash holdings and")
+
+      Then("NoiseTrader sends Payment to the TransactionHandler.")
+
+    }
+
+    scenario("NoiseTrader receives RequestSecurities") {
+
+      When("NoiseTrader receives RequestSecurities from some TransactionHandler")
+
+      Then("NoiseTrader decrements its asset holdings and")
+
+      Then("NoiseTrader sends Securities to the TransactionHandler.")
+
+    }
+  }
+
+  feature("NoiseTrader should be able to update cash holdings on receipt of Payment or Securities.") {
+
+    scenario("NoiseTrader receives Payment (from some TransactionHandler).") {
+
+      val assets = mutable.Map[String, Int](("APPL", 10000))
+
+      val cash = 1e6
+
+      val market = TestProbe()
+
+      val prng = new Random()
+
+      val noiseTraderRef = TestActorRef(new NoiseTrader(assets, cash, market.ref, prng))
+
+      val noiseTrader =  noiseTraderRef.underlyingActor
+
+      When("NoiseTrader receives Payment.")
+
+      val payment = Payment(prng.nextDouble() * 1e9)
+      noiseTraderRef ! payment
+
+      Then("NoiseTrader increments its cash holdings.")
+
+      noiseTrader.cash should be (cash + payment.amount)
+
+    }
+
+    scenario("NoiseTrader receives Securities.") {
+
+      val assets = mutable.Map[String, Int](("APPL", 10000))
+
+      val cash = 1e6
+
+      val market = TestProbe()
+
+      val prng = new Random()
+
+      val noiseTraderRef = TestActorRef(new NoiseTrader(assets, cash, market.ref, prng))
+
+      val noiseTrader =  noiseTraderRef.underlyingActor
+
+      When("NoiseTrader receives Securities from some TransactionHandler")
+
+      val securities = Securities("APPL", prng.nextInt(10000))
+      noiseTraderRef ! securities
+
+      Then("NoiseTrader increments its asset holdings.")
+
+      noiseTrader.assets("APPL") should be (10000 + securities.quantity)
+
+    }
+
+  }
+
 }
