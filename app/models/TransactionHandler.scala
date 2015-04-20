@@ -7,6 +7,8 @@ import akka.actor.{ActorRef, Actor}
   *
   * Reduced form model of a payments system.
   *
+  * @todo handle failure to send payment and failure to send securities.
+  *
   */
 class TransactionHandler extends Actor {
 
@@ -18,28 +20,34 @@ class TransactionHandler extends Actor {
 
   var securities: Option[Securities] = None
 
-  def checkIfComplete(): Unit = {
+  def paymentReceived: Boolean = {
+    payment.isDefined
+  }
 
-    if (payment.isDefined && securities.isDefined) {
-      buyer ! securities.get
-      seller ! payment.get
-      context.stop(self)
-    }
-
+  def securitiesReceived: Boolean = {
+    securities.isDefined
   }
 
   def receive: Receive = {
     case fill: FillLike =>
-      seller = fill.askTradingPartyRef
+      seller = fill.askTradingPartyRef; buyer = fill.bidTradingPartyRef
       seller ! RequestSecurities(fill.instrument, fill.quantity)
-      buyer = fill.bidTradingPartyRef
       buyer ! RequestPayment(fill.price * fill.quantity)
     case Payment(amount) =>
-      payment = Some(Payment(amount)); checkIfComplete()
+      payment = Some(Payment(amount))
+      if (securitiesReceived) {
+        buyer ! securities.get
+        seller ! payment.get
+        context.stop(self)
+      }
     case Securities(instrument, quantity) =>
-      securities = Some(Securities(instrument, quantity)); checkIfComplete()
+      securities = Some(Securities(instrument, quantity))
+      if (paymentReceived) {
+        buyer ! securities.get
+        seller ! payment.get
+        context.stop(self)
+      }
   }
-
 
 }
 
