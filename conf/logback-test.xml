@@ -1,6 +1,6 @@
 <configuration>
-    <appender name="TRANSACTIONS" class="ch.qos.logback.core.FileAppender">
-        <filter class="models.TransactionsFilter" />
+    <appender name="FILLS" class="ch.qos.logback.core.FileAppender">
+        <filter class="models.FillsFilter" />
         <file>logs/transactions.log</file>
         <append>false</append>
         <encoder>
@@ -18,7 +18,7 @@
     </appender>
 
     <root level="INFO">
-        <appender-ref ref="TRANSACTIONS" />
+        <appender-ref ref="FILLS" />
     </root>
     <root level="INFO">
         <appender-ref ref="ORDERS" />
