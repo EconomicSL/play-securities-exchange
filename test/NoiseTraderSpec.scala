@@ -128,15 +128,7 @@ class NoiseTraderSpec extends TestKit(ActorSystem("NoiseTraderSpec")) with
 
   feature("NoiseTrader should be able to send orders to the market.") {
 
-    val assets = mutable.Map[String, Int](("APPL", 10000))
-
-    val cash = Double.PositiveInfinity
-
-    val market = TestProbe()
-
-    val prng = new Random()
-
-    scenario("NoiseTrader should generate a new order on receipt of a StartTrading message.") {
+    scenario("A NoiseTrader is created.") {
 
       Given("An existing NoiseTrader")
 
