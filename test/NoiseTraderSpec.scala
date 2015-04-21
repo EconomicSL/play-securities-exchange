@@ -128,13 +128,17 @@ class NoiseTraderSpec extends TestKit(ActorSystem("NoiseTraderSpec")) with
 
   feature("NoiseTrader should be able to send orders to the market.") {
 
-    scenario("A NoiseTrader is created.") {
+    scenario("NoiseTrader should generate a new order on receipt of a StartTrading message.") {
 
-      When("A NoiseTrader is created")
+      Given("An existing NoiseTrader")
 
       val market = TestProbe()
       val noiseTraderRef = TestActorRef(generateNoiseTrader(market.ref))
       val noiseTrader = noiseTraderRef.underlyingActor
+
+      When("A NoiseTrader receives a StartTrading message")
+
+      noiseTraderRef ! StartTrading
 
       Then("the NoiseTrader should start sending orders to the market.")
 
@@ -148,7 +152,6 @@ class NoiseTraderSpec extends TestKit(ActorSystem("NoiseTraderSpec")) with
 
       val market = TestProbe()
       val noiseTraderRef = TestActorRef(generateNoiseTrader(market.ref))
-      market.expectMsgType[OrderLike]  // initial order generated on start up!
 
       When("A NoiseTrader receives an OrderReceived message")
 
