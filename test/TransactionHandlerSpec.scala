@@ -16,6 +16,10 @@ class TransactionHandlerSpec extends TestKit(ActorSystem("TransactionHandlerSpec
     system.shutdown()
   }
 
+  def generateRandomAmount(maxAmount: Double = 1e6): Double = {
+    Random.nextDouble() * maxAmount
+  }
+
   def generateRandomPrice(maxPrice: Double = 1000.0): Double = {
     Random.nextDouble() * maxPrice
   }
@@ -51,7 +55,7 @@ class TransactionHandlerSpec extends TestKit(ActorSystem("TransactionHandlerSpec
                                     fillPrice,
                                     fillQuantity)
 
-      When("TransactionHandler receives the PartialFill")
+      When("TransactionHandler receives a PartialFill")
 
       transactionHandlerRef ! partialFill
 
