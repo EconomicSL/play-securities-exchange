@@ -74,10 +74,6 @@ case class NoiseTrader(assets: mutable.Map[String, Int],
     }
   }
 
-  override def preStart(): Unit = {
-    self ! StartTrading
-  }
-
   def receive: Receive = {
     case StartTrading =>
       market ! generateNewOrder()
