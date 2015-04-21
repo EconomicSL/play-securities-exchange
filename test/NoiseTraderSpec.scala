@@ -128,7 +128,7 @@ class NoiseTraderSpec extends TestKit(ActorSystem("NoiseTraderSpec")) with
 
   feature("NoiseTrader should be able to send orders to the market.") {
 
-    scenario("A NoiseTrader is created.") {
+    scenario("NoiseTrader should generate a new order on receipt of an StartTrading message.") {
 
       Given("An existing NoiseTrader")
 
