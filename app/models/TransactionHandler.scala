@@ -67,18 +67,3 @@ class TransactionHandler extends Actor {
 
 }
 
-
-case class RequestSecurities(instrument: String, quantity: Int) {
-
-  require(quantity > 0)
-
-}
-
-
-case class Securities(instrument: String, quantity: Int) {
-
-  require(quantity > 0)
-
-}
-
-

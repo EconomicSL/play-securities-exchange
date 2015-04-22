@@ -16,15 +16,20 @@ limitations under the License.
 
 package models
 
-import akka.actor.Actor
-
-import scala.collection.mutable
+import akka.actor.{ActorRef, Actor}
 
 
 trait TraderLike {
   this: Actor =>
 
-  def assets: mutable.Map[String, Int]
+  val market: ActorRef
+
+  val traderLikeBehavior: Receive = {
+    case StartTrading =>
+      market ! generateNewOrder()
+    case OrderReceived =>
+      market ! generateNewOrder()
+  }
 
   def decideAskPrice(): Double
 
@@ -38,4 +43,10 @@ trait TraderLike {
 
   def generateNewBidOrder(): BidOrderLike
 
+  def generateNewOrder(): OrderLike
+
 }
+
+
+case object StartTrading
+

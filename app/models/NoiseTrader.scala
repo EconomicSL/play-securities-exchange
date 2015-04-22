@@ -23,12 +23,13 @@ import scala.collection.mutable
 import scala.util.Random
 
 
-case class NoiseTrader(assets: mutable.Map[String, Int],
+case class NoiseTrader(securities: mutable.Map[String, Int],
                        var cash: Double,
                        market: ActorRef,
                        prng: Random) extends Actor with
   TraderLike with
-  CashHolder {
+  CashHolder with
+  SecuritiesHolder {
 
   val conf = ConfigFactory.load("traders.conf")
 
@@ -55,8 +56,8 @@ case class NoiseTrader(assets: mutable.Map[String, Int],
   }
 
   def decideInstrument(): String = {
-    val idx = prng.nextInt(assets.size)
-    assets.keys.toList(idx)
+    val idx = prng.nextInt(securities.size)
+    securities.keys.toList(idx)
   }
 
   def generateNewAskOrder(): AskOrderLike = {
@@ -76,23 +77,7 @@ case class NoiseTrader(assets: mutable.Map[String, Int],
   }
 
   def receive: Receive = {
-    case StartTrading =>
-      market ! generateNewOrder()
-    case OrderReceived =>
-      market ! generateNewOrder()
-    case RequestPayment(amount) =>
-      cash -= amount
-      sender() ! Payment(amount)
-    case RequestSecurities(instrument, quantity) =>
-      assets(instrument) -= quantity
-      sender() ! Securities(instrument, quantity)
-    case Payment(amount) =>
-      cash += amount
-    case Securities(instrument, quantity) =>
-      assets(instrument) += quantity
+    traderLikeBehavior orElse handleCashTransaction orElse handleSecuritiesTransaction
   }
 
 }
-
-
-case object StartTrading
