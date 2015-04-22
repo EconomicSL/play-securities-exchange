@@ -66,10 +66,10 @@ case class PartialFill(askTradingPartyRef: ActorRef,
   * @param quantity: Agreed quantity for the filled order.
   */
 case class TotalFill(askTradingPartyRef: ActorRef,
-                            bidTradingPartyRef: ActorRef,
-                            instrument: String,
-                            price: Double,
-                            quantity: Int) extends FillLike {
+                     bidTradingPartyRef: ActorRef,
+                     instrument: String,
+                     price: Double,
+                     quantity: Int) extends FillLike {
 
   require(price > 0, "Price must be strictly positive.")
 
