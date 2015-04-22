@@ -24,8 +24,6 @@ import scala.collection.mutable
 trait TraderLike {
   this: Actor =>
 
-  def cash: Double
-
   def assets: mutable.Map[String, Int]
 
   def decideAskPrice(): Double

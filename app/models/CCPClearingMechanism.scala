@@ -24,8 +24,12 @@ import akka.actor.{Props, ActorLogging, Actor}
   * Central counter party inserts itself as trading party with ask and bid actors.
   * 
   */
-class CCPClearingMechanism extends Actor
-  with ActorLogging {
+class CCPClearingMechanism extends Actor with
+  ActorLogging with
+  CashHolder {
+
+  /* For now assume that central counter party has "deep pockets". */
+  var cash: Double = Double.PositiveInfinity
 
   def receive: Receive = {
     case PartialFill(askTradingPartyRef, bidTradingPartyRef, instrument, price, quantity) =>

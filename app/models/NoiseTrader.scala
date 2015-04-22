@@ -27,7 +27,8 @@ case class NoiseTrader(assets: mutable.Map[String, Int],
                        var cash: Double,
                        market: ActorRef,
                        prng: Random) extends Actor with
-  TraderLike {
+  TraderLike with
+  CashHolder {
 
   val conf = ConfigFactory.load("traders.conf")
 
@@ -82,9 +83,9 @@ case class NoiseTrader(assets: mutable.Map[String, Int],
     case RequestPayment(amount) =>
       cash -= amount
       sender() ! Payment(amount)
-    case RequestSecurities(insrument, quantity) =>
-      assets(insrument) -= quantity
-      sender() ! Securities(insrument, quantity)
+    case RequestSecurities(instrument, quantity) =>
+      assets(instrument) -= quantity
+      sender() ! Securities(instrument, quantity)
     case Payment(amount) =>
       cash += amount
     case Securities(instrument, quantity) =>
