@@ -37,7 +37,7 @@ trait SecuritiesHolder {
     securities(instrument) += quantity
   }
 
-  def handleSecuritiesTransaction: Receive = {
+  def securitiesHolderBehavior: Receive = {
     case RequestSecurities(instrument, quantity) =>
       deccumulateSecurities(instrument, quantity)
       sender() ! Securities(instrument, quantity)

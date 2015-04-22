@@ -77,7 +77,7 @@ case class NoiseTrader(securities: mutable.Map[String, Int],
   }
 
   def receive: Receive = {
-    traderLikeBehavior orElse handleCashTransaction orElse handleSecuritiesTransaction
+    traderLikeBehavior orElse cashHolderBehavior orElse securitiesHolderBehavior
   }
 
 }

@@ -40,7 +40,7 @@ trait CashHolder {
     cash += amount
   }
 
-  val handleCashTransaction: Receive = {
+  val cashHolderBehavior: Receive = {
     case Payment(amount) =>
       hoardCash(amount)
     case RequestPayment(amount) =>

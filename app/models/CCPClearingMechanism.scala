@@ -18,6 +18,8 @@ package models
 
 import akka.actor.{Props, ActorLogging, Actor}
 
+import scala.collection.mutable
+
 
 /** Central counter party (CCP) clearing mechanism.
   *
@@ -26,12 +28,24 @@ import akka.actor.{Props, ActorLogging, Actor}
   */
 class CCPClearingMechanism extends Actor with
   ActorLogging with
-  CashHolder {
+  CashHolder with
+  SecuritiesHolder {
 
   /* For now assume that central counter party has "deep pockets". */
   var cash: Double = Double.PositiveInfinity
 
-  def receive: Receive = {
+  /* For now assume that central counter party can take negative asset positions. */
+  val securities: mutable.Map[String, Int] = mutable.Map[String, Int]()
+
+  /** Central counter-party (CCP) clearing mechanism behavior
+    *
+    * @note The key difference between CCP clearing and bilateral clearing is that
+    * CCP inserts itself as the counter-party to both the ask and the bid
+    * trading parties before processing the final transaction. By acting as
+    * a counter-party to every transaction, the CCP assumes all counter-party
+    * risk.
+    */
+  val clearingMechanismBehavior: Receive = {
     case PartialFill(askTradingPartyRef, bidTradingPartyRef, instrument, price, quantity) =>
       // insert self as counter party to the bid trading party
       val askTransactionHandler = context.actorOf(Props[TransactionHandler])
@@ -49,6 +63,10 @@ class CCPClearingMechanism extends Actor with
       // insert self as counter party to the ask trading party
       val bidTransactionHandler = context.actorOf(Props[TransactionHandler])
       bidTransactionHandler ! TotalFill(askTradingPartyRef, self, instrument, price, quantity)
+  }
+
+  def receive: Receive = {
+    clearingMechanismBehavior orElse cashHolderBehavior orElse securitiesHolderBehavior
   }
   
 }
