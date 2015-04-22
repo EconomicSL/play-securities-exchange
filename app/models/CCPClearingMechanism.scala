@@ -28,23 +28,23 @@ class CCPClearingMechanism extends Actor
   with ActorLogging {
 
   def receive: Receive = {
-    case fill: PartialFill =>
+    case PartialFill(askTradingPartyRef, bidTradingPartyRef, instrument, price, quantity) =>
       // insert self as counter party to the bid trading party
       val askTransactionHandler = context.actorOf(Props[TransactionHandler])
-      askTransactionHandler ! PartialFill(self, fill.bidTradingPartyRef, fill.instrument, fill.price, fill.quantity)
+      askTransactionHandler ! PartialFill(self, bidTradingPartyRef, instrument, price, quantity)
 
       // insert self as counter party to the ask trading party
       val bidTransactionHandler = context.actorOf(Props[TransactionHandler])
-      bidTransactionHandler ! PartialFill(fill.askTradingPartyRef, self, fill.instrument, fill.price, fill.quantity)
+      bidTransactionHandler ! PartialFill(askTradingPartyRef, self, instrument, price, quantity)
 
-    case fill: TotalFill =>
+    case TotalFill(askTradingPartyRef, bidTradingPartyRef, instrument, price, quantity) =>
       // insert self as counter party to the bid trading party
       val askTransactionHandler = context.actorOf(Props[TransactionHandler])
-      askTransactionHandler ! TotalFill(self, fill.bidTradingPartyRef, fill.instrument, fill.price, fill.quantity)
+      askTransactionHandler ! TotalFill(self, bidTradingPartyRef, instrument, price, quantity)
 
       // insert self as counter party to the ask trading party
       val bidTransactionHandler = context.actorOf(Props[TransactionHandler])
-      bidTransactionHandler ! TotalFill(fill.askTradingPartyRef, self, fill.instrument, fill.price, fill.quantity)
+      bidTransactionHandler ! TotalFill(askTradingPartyRef, self, instrument, price, quantity)
   }
   
 }
