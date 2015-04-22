@@ -20,18 +20,6 @@ import akka.actor.{ActorLogging, Actor}
 import akka.agent.Agent
 
 
-/** Implements a Continuous Double Auction (CDA) market.
-  *
-  * The Continuous Double Auction (CDA) market is a mechanism that matches
-  * buyers and sellers of a particular security and determines the prices at
-  * and quantities at which orders are filled. At any point in time, traders
-  * can place orders in the form of bids (i.e., buy orders) and asks (i.e.,
-  * sell orders). Outstanding orders are maintained in order books.
-  *
-  * @param instrument the security traded on the market.
-  *
-  * @author davidrpugh
-  */
 class DoubleAuctionMechanism(val instrument: String) extends Actor with
   ActorLogging with
   MatchingEngineLike {
