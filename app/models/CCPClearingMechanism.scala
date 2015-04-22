@@ -1,7 +1,6 @@
 package models
 
 import akka.actor.{Props, ActorLogging, Actor}
-import models.TransactionHandler
 
 
 /** Central counter party (CCP) clearing mechanism.
