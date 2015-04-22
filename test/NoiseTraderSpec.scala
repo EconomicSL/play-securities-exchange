@@ -28,7 +28,7 @@ class NoiseTraderSpec extends TestKit(ActorSystem("NoiseTraderSpec")) with
     NoiseTrader(assets, cash, market, prng)
 
   }
-
+  
   def generateRandomAmount(maxAmount: Double = 1e6): Double = {
     Random.nextDouble() * maxAmount
   }
@@ -128,7 +128,7 @@ class NoiseTraderSpec extends TestKit(ActorSystem("NoiseTraderSpec")) with
 
   feature("NoiseTrader should be able to send orders to the market.") {
 
-    scenario("NoiseTrader should generate a new order on receipt of an StartTrading message.") {
+    scenario("NoiseTrader should generate a new order on receipt of a StartTrading message.") {
 
       Given("An existing NoiseTrader")
 
@@ -179,7 +179,7 @@ class NoiseTraderSpec extends TestKit(ActorSystem("NoiseTraderSpec")) with
 
       val paymentRequest = RequestPayment(generateRandomAmount())
       noiseTraderRef ! paymentRequest
-
+      
       Then("NoiseTrader decrements its cash holdings and")
 
       noiseTrader.cash should be (initialCashHoldings - paymentRequest.amount)
@@ -217,7 +217,7 @@ class NoiseTraderSpec extends TestKit(ActorSystem("NoiseTraderSpec")) with
   }
 
   feature("NoiseTrader should be able to update cash (asset) holdings on receipt of Payment (Securities).") {
-
+    
     scenario("NoiseTrader receives Payment.") {
 
       val market = TestProbe()
