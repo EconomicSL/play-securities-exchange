@@ -17,19 +17,27 @@ class CCPClearingMechanismSpec extends TestKit(ActorSystem("NoiseTraderSpec")) w
     system.shutdown()
   }
 
-  def generateRandomFill(askTradingPartyRef: ActorRef,
-                         bidTradingPartyRef: ActorRef,
-                         maxPrice: Double = 1e6,
-                         maxQuantity: Int = 10000): FillLike = {
+  def generateRandomPartialFill(askTradingPartyRef: ActorRef,
+                                bidTradingPartyRef: ActorRef,
+                                maxPrice: Double = 1e6,
+                                maxQuantity: Int = 10000): FillLike = {
     val instrument = Random.nextString(4)
     val price = generateRandomPrice()
     val quantity = generateRandomQuantity()
 
-    if (Random.nextFloat() < 0.5) {
-      PartialFill(askTradingPartyRef, bidTradingPartyRef, instrument, price, quantity)
-    } else {
-      TotalFill(askTradingPartyRef, bidTradingPartyRef, instrument, price, quantity)
-    }
+    PartialFill(askTradingPartyRef, bidTradingPartyRef, instrument, price, quantity)
+  }
+
+  def generateRandomTotalFill(askTradingPartyRef: ActorRef,
+                              bidTradingPartyRef: ActorRef,
+                              maxPrice: Double = 1e6,
+                              maxQuantity: Int = 10000): FillLike = {
+
+    val instrument = Random.nextString(4)
+    val price = generateRandomPrice()
+    val quantity = generateRandomQuantity()
+
+    TotalFill(askTradingPartyRef, bidTradingPartyRef, instrument, price, quantity)
 
   }
 
@@ -46,13 +54,13 @@ class CCPClearingMechanismSpec extends TestKit(ActorSystem("NoiseTraderSpec")) w
 
     val clearingMechanism = TestActorRef(Props[CCPClearingMechanism])
 
-    scenario("CCPClearingMechanism receives a FillLike.") {
+    scenario("CCPClearingMechanism receives a PartialFill.") {
 
       val askTradingParty = TestProbe()
       val bidTradingParty = TestProbe()
-      val fill = generateRandomFill(askTradingParty.ref, bidTradingParty.ref)
+      val fill = generateRandomPartialFill(askTradingParty.ref, bidTradingParty.ref)
 
-      When("CCPClearingMechanism receives a FillLike")
+      When("CCPClearingMechanism receives a PartialFill")
 
       clearingMechanism ! fill
 
@@ -70,6 +78,31 @@ class CCPClearingMechanismSpec extends TestKit(ActorSystem("NoiseTraderSpec")) w
 
       Then("CCPClearingMechanism should receive a request for Payment")
 
+    }
+
+    scenario("CCPClearingMechanism receives a TotalFill.") {
+
+      val askTradingParty = TestProbe()
+      val bidTradingParty = TestProbe()
+      val fill = generateRandomTotalFill(askTradingParty.ref, bidTradingParty.ref)
+
+      When("CCPClearingMechanism receives a TotalFill")
+
+      clearingMechanism ! fill
+
+      Then("AskTradingParty should receive a request for Securities")
+
+      val securitiesRequest = RequestSecurities(fill.instrument, fill.quantity)
+      askTradingParty.expectMsg(securitiesRequest)
+
+      Then("BidTradingParty should receive a request for Payment")
+
+      val paymentRequest = RequestPayment(fill.price * fill.quantity)
+      bidTradingParty.expectMsg(paymentRequest)
+
+      Then("CCPClearingMechanism should receive a request for Securities")
+
+      Then("CCPClearingMechanism should receive a request for Payment")
 
     }
 
