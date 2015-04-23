@@ -18,30 +18,6 @@ class CCPClearingMechanismSpec extends TestKit(ActorSystem("CCPClearingMechanism
     system.shutdown()
   }
 
-  def generateNoiseTrader(market: ActorRef, instruments: Seq[String], maxCash: Double = 1e6, maxHoldings: Int =10000): NoiseTrader = {
-
-    val assets = generateRandomAssetHoldings(instruments, maxHoldings)
-    val cash = generateRandomCashHoldings(maxCash)
-    val prng = new Random()
-
-    NoiseTrader(assets, cash, market, prng)
-
-  }
-
-  def generateRandomAssetHoldings(instruments: Seq[String], maxHoldings: Int = 10000): mutable.Map[String, Int] = {
-    val assetHoldings = mutable.Map[String, Int]()
-
-    for (instrument <- instruments) {
-      assetHoldings(instrument) = generateRandomQuantity(maxHoldings)
-    }
-
-    assetHoldings
-  }
-
-  def generateRandomCashHoldings(maxCash: Double = 1e6): Double = {
-    Random.nextDouble() * maxCash
-  }
-
   def generateRandomPartialFill(askTradingPartyRef: ActorRef,
                                 bidTradingPartyRef: ActorRef,
                                 instrument: String,
