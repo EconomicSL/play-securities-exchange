@@ -1,4 +1,4 @@
-import akka.actor.ActorSystem
+import akka.actor.{ActorRef, ActorSystem}
 import akka.testkit.{TestActorRef, TestProbe, TestKit}
 import models._
 import org.scalatest.{BeforeAndAfterAll, Matchers, GivenWhenThen, FeatureSpecLike}
@@ -28,8 +28,29 @@ class TransactionHandlerSpec extends TestKit(ActorSystem("TransactionHandlerSpec
     Random.nextInt(maxQuantity)
   }
 
-  val testInstrument = "GOOG"
+  def generateRandomPartialFill(askTradingPartyRef: ActorRef,
+                                bidTradingPartyRef: ActorRef,
+                                maxPrice: Double = 1e6,
+                                maxQuantity: Int = 10000): PartialFill = {
+    val instrument = Random.nextString(4)
+    val price = generateRandomPrice()
+    val quantity = generateRandomQuantity()
 
+    PartialFill(askTradingPartyRef, bidTradingPartyRef, instrument, price, quantity)
+  }
+
+  def generateRandomTotalFill(askTradingPartyRef: ActorRef,
+                              bidTradingPartyRef: ActorRef,
+                              maxPrice: Double = 1e6,
+                              maxQuantity: Int = 10000): TotalFill = {
+
+    val instrument = Random.nextString(4)
+    val price = generateRandomPrice()
+    val quantity = generateRandomQuantity()
+
+    TotalFill(askTradingPartyRef, bidTradingPartyRef, instrument, price, quantity)
+
+  }
 
   feature("TransactionHandler should receive Fills.") {
 
@@ -37,34 +58,22 @@ class TransactionHandlerSpec extends TestKit(ActorSystem("TransactionHandlerSpec
 
       val transactionHandlerRef = TestActorRef(new TransactionHandler)
 
-      val transactionHandler = transactionHandlerRef.underlyingActor
-
       Given("An existing PartialFill")
 
       val askTradingParty = TestProbe()
-
       val bidTradingParty = TestProbe()
-
-      val fillPrice = generateRandomPrice()
-
-      val fillQuantity = generateRandomQuantity()
-
-      val partialFill = PartialFill(askTradingParty.ref,
-                                    bidTradingParty.ref,
-                                    testInstrument,
-                                    fillPrice,
-                                    fillQuantity)
+      val fill = generateRandomPartialFill(askTradingParty.ref, bidTradingParty.ref)
 
       When("TransactionHandler receives a PartialFill")
 
-      transactionHandlerRef ! partialFill
+      transactionHandlerRef ! fill
 
       Then("TransactionHandler should send requests for payment and securities.")
 
-      val securitiesRequest = RequestSecurities(testInstrument, fillQuantity)
+      val securitiesRequest = RequestSecurities(fill.instrument, fill.quantity)
       askTradingParty.expectMsg(securitiesRequest)
 
-      val paymentRequest = RequestPayment(fillPrice * fillQuantity)
+      val paymentRequest = RequestPayment(fill.price * fill.quantity)
       bidTradingParty.expectMsg(paymentRequest)
 
     }
@@ -73,34 +82,22 @@ class TransactionHandlerSpec extends TestKit(ActorSystem("TransactionHandlerSpec
 
       val transactionHandlerRef = TestActorRef(new TransactionHandler)
 
-      val transactionHandler = transactionHandlerRef.underlyingActor
-
       Given("An existing TotalFill")
 
       val askTradingParty = TestProbe()
-
       val bidTradingParty = TestProbe()
-
-      val fillPrice = generateRandomPrice()
-
-      val fillQuantity = generateRandomQuantity()
-
-      val totalFill = TotalFill(askTradingParty.ref,
-        bidTradingParty.ref,
-        testInstrument,
-        fillPrice,
-        fillQuantity)
+      val fill = generateRandomTotalFill(askTradingParty.ref, bidTradingParty.ref)
 
       When("TransactionHandler receives the TotalFill")
 
-      transactionHandlerRef ! totalFill
+      transactionHandlerRef ! fill
 
       Then("TransactionHandler should send requests for payment and securities.")
 
-      val securitiesRequest = RequestSecurities(testInstrument, fillQuantity)
+      val securitiesRequest = RequestSecurities(fill.instrument, fill.quantity)
       askTradingParty.expectMsg(securitiesRequest)
 
-      val paymentRequest = RequestPayment(fillPrice * fillQuantity)
+      val paymentRequest = RequestPayment(fill.price * fill.quantity)
       bidTradingParty.expectMsg(paymentRequest)
 
     }
@@ -108,54 +105,80 @@ class TransactionHandlerSpec extends TestKit(ActorSystem("TransactionHandlerSpec
 
   feature("TransactionHandler should receive Payment and Securities.") {
 
-    scenario("TransactionHandler receives a TotalFill.") {
+    scenario("TransactionHandler receives Payment before Securities.") {
+
+      val transactionHandlerRef = TestActorRef(new TransactionHandler)
+      val transactionHandler = transactionHandlerRef.underlyingActor
 
       Given("TransactionHandler has already received a fill")
 
-      val transactionHandlerRef = TestActorRef(new TransactionHandler)
-
-      val transactionHandler = transactionHandlerRef.underlyingActor
-
       val askTradingParty = TestProbe()
-
       val bidTradingParty = TestProbe()
+      val fill = generateRandomPartialFill(askTradingParty.ref, bidTradingParty.ref)
 
-      val fillPrice = generateRandomPrice()
-
-      val fillQuantity = generateRandomQuantity()
-
-      val partialFill = PartialFill(askTradingParty.ref,
-        bidTradingParty.ref,
-        testInstrument,
-        fillPrice,
-        fillQuantity)
-
-      transactionHandlerRef ! partialFill
-
-      // confirm receipt of request for securities
-      val securitiesRequest = RequestSecurities(testInstrument, fillQuantity)
-      askTradingParty.expectMsg(securitiesRequest)
-
-      // confirm receipt of request for payment
-      val paymentRequest = RequestPayment(fillPrice * fillQuantity)
-      bidTradingParty.expectMsgAnyOf(paymentRequest)
+      transactionHandlerRef ! fill
 
       When("TransactionHandler receives Payment")
 
-      val payment = Payment(fillPrice * fillQuantity)
+      val payment = Payment(fill.price * fill.quantity)
       transactionHandlerRef ! payment
+      assert(transactionHandler.paymentReceived)
 
       When("TransactionHandler receives Securities")
 
-      val securities = Securities(testInstrument, fillQuantity)
+      val securities = Securities(fill.instrument, fill.quantity)
       transactionHandlerRef ! securities
+      assert(transactionHandler.securitiesReceived)
 
       Then("TransactionHandler should forward Payment to the seller")
 
+      val securitiesRequest = RequestSecurities(fill.instrument, fill.quantity)
+      askTradingParty.expectMsg(securitiesRequest)
       askTradingParty.expectMsg(payment)
 
       Then("TransactionHandler should forward Securities to the buyer")
 
+      val paymentRequest = RequestPayment(fill.price * fill.quantity)
+      bidTradingParty.expectMsg(paymentRequest)
+      bidTradingParty.expectMsg(securities)
+
+    }
+
+    scenario("TransactionHandler receives Securities before Payment.") {
+
+      val transactionHandlerRef = TestActorRef(new TransactionHandler)
+      val transactionHandler = transactionHandlerRef.underlyingActor
+
+      Given("TransactionHandler has already received a fill")
+
+      val askTradingParty = TestProbe()
+      val bidTradingParty = TestProbe()
+      val fill = generateRandomPartialFill(askTradingParty.ref, bidTradingParty.ref)
+
+      transactionHandlerRef ! fill
+
+      When("TransactionHandler receives Securities")
+
+      val securities = Securities(fill.instrument, fill.quantity)
+      transactionHandlerRef ! securities
+      assert(transactionHandler.securitiesReceived)
+
+      When("TransactionHandler receives Payment")
+
+      val payment = Payment(fill.price * fill.quantity)
+      transactionHandlerRef ! payment
+      assert(transactionHandler.paymentReceived)
+
+      Then("TransactionHandler should forward Payment to the seller")
+
+      val securitiesRequest = RequestSecurities(fill.instrument, fill.quantity)
+      askTradingParty.expectMsg(securitiesRequest)
+      askTradingParty.expectMsg(payment)
+
+      Then("TransactionHandler should forward Securities to the buyer")
+
+      val paymentRequest = RequestPayment(fill.price * fill.quantity)
+      bidTradingParty.expectMsg(paymentRequest)
       bidTradingParty.expectMsg(securities)
 
     }

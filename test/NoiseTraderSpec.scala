@@ -112,7 +112,7 @@ class NoiseTraderSpec extends TestKit(ActorSystem("NoiseTraderSpec")) with
 
       Then("the desired instrument should be feasible")
 
-      noiseTrader.assets.keySet should contain(instrument)
+      noiseTrader.securities.keySet should contain(instrument)
 
       When("NoiseTrader generates a new order")
 
@@ -196,8 +196,8 @@ class NoiseTraderSpec extends TestKit(ActorSystem("NoiseTraderSpec")) with
       val noiseTraderRef = TestActorRef(generateNoiseTrader(market.ref))
       val noiseTrader =  noiseTraderRef.underlyingActor
 
-      val symbol = noiseTrader.assets.keys.head
-      val initialAssetsHoldings = noiseTrader.assets(symbol)
+      val symbol = noiseTrader.securities.keys.head
+      val initialAssetsHoldings = noiseTrader.securities(symbol)
 
       When("NoiseTrader receives RequestSecurities")
 
@@ -206,7 +206,7 @@ class NoiseTraderSpec extends TestKit(ActorSystem("NoiseTraderSpec")) with
 
       Then("NoiseTrader decrements its asset holdings and")
 
-      noiseTrader.assets(symbol) should be (initialAssetsHoldings - securitiesRequest.quantity)
+      noiseTrader.securities(symbol) should be (initialAssetsHoldings - securitiesRequest.quantity)
 
       Then("NoiseTrader sends Securities.")
 
@@ -243,8 +243,8 @@ class NoiseTraderSpec extends TestKit(ActorSystem("NoiseTraderSpec")) with
       val noiseTraderRef = TestActorRef(generateNoiseTrader(market.ref))
       val noiseTrader =  noiseTraderRef.underlyingActor
 
-      val symbol = noiseTrader.assets.keys.head
-      val initialAssetsHoldings = noiseTrader.assets(symbol)
+      val symbol = noiseTrader.securities.keys.head
+      val initialAssetsHoldings = noiseTrader.securities(symbol)
 
       When("NoiseTrader receives Securities")
 
@@ -253,7 +253,7 @@ class NoiseTraderSpec extends TestKit(ActorSystem("NoiseTraderSpec")) with
 
       Then("NoiseTrader increments its asset holdings.")
 
-      noiseTrader.assets(symbol) should be (initialAssetsHoldings + securities.quantity)
+      noiseTrader.securities(symbol) should be (initialAssetsHoldings + securities.quantity)
 
     }
 
