@@ -101,7 +101,7 @@ class CCPClearingMechanismSpec extends TestKit(ActorSystem("CCPClearingMechanism
 
     scenario("CCPClearingMechanism receives a TotalFill.") {
 
-      val fill = generateRandomPartialFill(askTradingParty.ref, bidTradingParty.ref, "APPL")
+      val fill = generateRandomTotalFill(askTradingParty.ref, bidTradingParty.ref, "APPL")
 
       // store initial holdings of cash and securities
       val clearingMechanismInitialSecurities = clearingMechanism.securities(fill.instrument)
