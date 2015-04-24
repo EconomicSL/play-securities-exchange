@@ -25,7 +25,7 @@ sealed trait FillLike {
 
   val bidTradingPartyRef: ActorRef
 
-  val instrument: String
+  val instrument: Security
 
   val price: Double
 
@@ -43,7 +43,7 @@ sealed trait FillLike {
   */
 case class PartialFill(askTradingPartyRef: ActorRef,
                        bidTradingPartyRef: ActorRef,
-                       instrument: String,
+                       instrument: Security,
                        price: Double,
                        quantity: Int) extends FillLike {
 
@@ -67,7 +67,7 @@ case class PartialFill(askTradingPartyRef: ActorRef,
   */
 case class TotalFill(askTradingPartyRef: ActorRef,
                      bidTradingPartyRef: ActorRef,
-                     instrument: String,
+                     instrument: Security,
                      price: Double,
                      quantity: Int) extends FillLike {
 

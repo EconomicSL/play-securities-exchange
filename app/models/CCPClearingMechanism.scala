@@ -37,7 +37,7 @@ class CCPClearingMechanism extends ClearingMechanismLike with
   var cash: Double = Double.PositiveInfinity
 
   /* For now assume that central counter party can take negative asset positions. */
-  val securities: mutable.Map[String, Int] = mutable.Map[String, Int]().withDefaultValue(0)
+  val securities: mutable.Map[Security, Int] = mutable.Map[Security, Int]().withDefaultValue(0)
 
   /** Central counter-party (CCP) clearing mechanism behavior. */
   val clearingMechanismBehavior: Receive = {

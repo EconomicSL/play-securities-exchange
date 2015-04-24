@@ -24,7 +24,7 @@ trait AuctionMechanismLike extends Actor with
   ActorLogging {
 
   /** Security being traded via the auction mechanism. */
-  def instrument: String
+  def instrument: Security
 
   /** ActorRef for a ClearingMechanismLike actor.
     *

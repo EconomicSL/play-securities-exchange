@@ -17,19 +17,27 @@ class BilateralClearingMechanismSpec extends TestKit(ActorSystem("NoiseTraderSpe
     system.shutdown()
   }
 
-  def generateRandomFill(askTradingPartyRef: ActorRef,
-                         bidTradingPartyRef: ActorRef,
-                         maxPrice: Double = 1e6,
-                         maxQuantity: Int = 10000): FillLike = {
-    val instrument = Random.nextString(4)
+  def generateRandomPartialFill(askTradingPartyRef: ActorRef,
+                                bidTradingPartyRef: ActorRef,
+                                instrument: Security,
+                                maxPrice: Double = 1e6,
+                                maxQuantity: Int = 10000): FillLike = {
     val price = generateRandomPrice()
     val quantity = generateRandomQuantity()
 
-    if (Random.nextFloat() < 0.5) {
-      PartialFill(askTradingPartyRef, bidTradingPartyRef, instrument, price, quantity)
-    } else {
-      TotalFill(askTradingPartyRef, bidTradingPartyRef, instrument, price, quantity)
-    }
+    PartialFill(askTradingPartyRef, bidTradingPartyRef, instrument, price, quantity)
+  }
+
+  def generateRandomTotalFill(askTradingPartyRef: ActorRef,
+                              bidTradingPartyRef: ActorRef,
+                              instrument: Security,
+                              maxPrice: Double = 1e6,
+                              maxQuantity: Int = 10000): FillLike = {
+
+    val price = generateRandomPrice()
+    val quantity = generateRandomQuantity()
+
+    TotalFill(askTradingPartyRef, bidTradingPartyRef, instrument, price, quantity)
 
   }
 
@@ -43,26 +51,50 @@ class BilateralClearingMechanismSpec extends TestKit(ActorSystem("NoiseTraderSpe
 
   feature("BilateralClearingMechanism should process transactions.") {
 
+    val testInstrument = Security("APPL", 1000000)
     val clearingMechanism = TestActorRef(Props[BilateralClearingMechanism])
 
-    scenario("BilateralClearingMechanism receives a FillLike.") {
+    scenario("BilateralClearingMechanism receives a PartialFill.") {
 
       val askTradingParty = TestProbe()
       val bidTradingParty = TestProbe()
-      val partialFill = generateRandomFill(askTradingParty.ref, bidTradingParty.ref)
+      val fill = generateRandomPartialFill(askTradingParty.ref, bidTradingParty.ref, testInstrument)
 
       When("BilateralClearingMechanism receives a FillLike")
 
-      clearingMechanism ! partialFill
+      clearingMechanism ! fill
 
       Then("AskTradingParty should receive a request for Securities")
 
-      val securitiesRequest = RequestSecurities(partialFill.instrument, partialFill.quantity)
+      val securitiesRequest = RequestSecurities(fill.instrument, fill.quantity)
       askTradingParty.expectMsg(securitiesRequest)
 
       Then("BidTradingParty should receive a request for Payment")
 
-      val paymentRequest = RequestPayment(partialFill.price * partialFill.quantity)
+      val paymentRequest = RequestPayment(fill.price * fill.quantity)
+      bidTradingParty.expectMsg(paymentRequest)
+
+    }
+
+
+    scenario("BilateralClearingMechanism receives a TotalFill.") {
+
+      val askTradingParty = TestProbe()
+      val bidTradingParty = TestProbe()
+      val fill = generateRandomTotalFill(askTradingParty.ref, bidTradingParty.ref, testInstrument)
+
+      When("BilateralClearingMechanism receives a FillLike")
+
+      clearingMechanism ! fill
+
+      Then("AskTradingParty should receive a request for Securities")
+
+      val securitiesRequest = RequestSecurities(fill.instrument, fill.quantity)
+      askTradingParty.expectMsg(securitiesRequest)
+
+      Then("BidTradingParty should receive a request for Payment")
+
+      val paymentRequest = RequestPayment(fill.price * fill.quantity)
       bidTradingParty.expectMsg(paymentRequest)
 
     }

@@ -17,7 +17,7 @@ trait OrderLike {
   def buy: Boolean
 
   /** The unique identifier of the security. */
-  def instrument: String
+  def instrument: Security
 
   /** The quantity being bought or sold. */
   def quantity: Int

@@ -19,7 +19,7 @@ class NoiseTraderSpec extends TestKit(ActorSystem("NoiseTraderSpec")) with
     system.shutdown()
   }
 
-  def generateNoiseTrader(market: ActorRef, maxCash: Double = 1e6, maxHoldings: Int =10000): NoiseTrader = {
+  def generateNoiseTrader(market: ActorRef, maxCash: Double = 1e6, maxHoldings: Int = 10000): NoiseTrader = {
 
     val assets = generateRandomAssetHoldings()
     val cash = generateRandomCashHoldings(maxCash)
@@ -33,11 +33,11 @@ class NoiseTraderSpec extends TestKit(ActorSystem("NoiseTraderSpec")) with
     Random.nextDouble() * maxAmount
   }
 
-  def generateRandomAssetHoldings(numberOfAssets: Int = 1, maxHoldings: Int = 10000): mutable.Map[String, Int] = {
-    val assetHoldings = mutable.Map[String, Int]()
+  def generateRandomAssetHoldings(numberOfAssets: Int = 1, maxHoldings: Int = 10000): mutable.Map[Security, Int] = {
+    val assetHoldings = mutable.Map[Security, Int]()
 
     for (i <- 0 until numberOfAssets) {
-      assetHoldings(Random.nextString(4)) = generateRandomQuantity(maxHoldings)
+      assetHoldings(Security(Random.nextString(4), generateRandomQuantity(maxHoldings))) = generateRandomQuantity(maxHoldings)
     }
 
     assetHoldings
