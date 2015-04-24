@@ -1,0 +1,8 @@
+@Manual{playSecuritiesExchange,
+        title = {A concurrent, asynchronous model of a securities exchange: building ABMs using the Play web framework},
+        author = {David R. Pugh},
+        organization = {Institute for New Economic Thinking},
+        year = {2015},
+        doi = ???,
+        url = {https://github.com/davidrpugh/play-securities-exchange}
+        }
