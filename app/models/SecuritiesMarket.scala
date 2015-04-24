@@ -16,20 +16,14 @@ limitations under the License.
 
 package models
 
-import akka.actor.Props
+import akka.actor.{ActorLogging, Actor}
 
 
-/** Bilateral clearing mechanism. */
-class BilateralClearingMechanism extends ClearingMechanismLike {
-
-  val clearingMechanismBehavior: Receive = {
-    case fill: FillLike =>
-      val transactionHandler = context.actorOf(Props[TransactionHandler])
-      transactionHandler ! fill
-  }
+class SecuritiesMarket extends Actor with
+  ActorLogging {
 
   def receive: Receive = {
-    clearingMechanismBehavior
+    ???
   }
 
 }

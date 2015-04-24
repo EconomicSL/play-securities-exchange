@@ -16,20 +16,21 @@ limitations under the License.
 
 package models
 
-import akka.actor.Props
+import akka.actor.{ActorRef, ActorLogging, Actor}
 
 
-/** Bilateral clearing mechanism. */
-class BilateralClearingMechanism extends ClearingMechanismLike {
+/** Base trait for all AuctionMechanisms */
+trait AuctionMechanismLike extends Actor with
+  ActorLogging {
 
-  val clearingMechanismBehavior: Receive = {
-    case fill: FillLike =>
-      val transactionHandler = context.actorOf(Props[TransactionHandler])
-      transactionHandler ! fill
-  }
+  /** Security being traded via the auction mechanism. */
+  def instrument: String
 
-  def receive: Receive = {
-    clearingMechanismBehavior
-  }
+  /** ActorRef for a ClearingMechanismLike actor.
+    *
+    * @note The ClearMechanismLike actor processes the transaction(s) for
+    *       each FillLike instance generated via the AuctionMechanism.
+    */
+  def clearingMechanism: ActorRef
 
 }
