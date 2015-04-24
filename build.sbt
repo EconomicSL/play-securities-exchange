@@ -13,5 +13,7 @@ libraryDependencies ++= Seq(
   ws,
   "com.typesafe.akka" %% "akka-agent" % "2.3.4",
   "org.scalatest" % "scalatest_2.11" % "2.2.3" % "test",
-  "com.typesafe.akka" %% "akka-testkit" % "2.3.4" % "test"
+  "com.typesafe.akka" %% "akka-testkit" % "2.3.4" % "test",
+  "org.webjars" % "bootstrap" % "2.3.1",
+  "org.webjars" % "flot" % "0.8.0"
 )
