@@ -23,7 +23,7 @@ import scala.collection.mutable
 import scala.util.Random
 
 
-case class NoiseTrader(securities: mutable.Map[String, Int],
+case class NoiseTrader(securities: mutable.Map[Security, Int],
                        var cash: Double,
                        market: ActorRef,
                        prng: Random) extends Actor with
@@ -55,7 +55,7 @@ case class NoiseTrader(securities: mutable.Map[String, Int],
     1 + prng.nextInt(maxQuantity)
   }
 
-  def decideInstrument(): String = {
+  def decideInstrument(): Security = {
     val idx = prng.nextInt(securities.size)
     securities.keys.toList(idx)
   }

@@ -1,6 +1,6 @@
 import akka.actor.ActorSystem
 import akka.testkit.TestKit
-import models.{LimitBidOrder, BidOrderBook}
+import models.{Security, LimitBidOrder, BidOrderBook}
 import org.scalatest.{BeforeAndAfterAll, FeatureSpecLike, GivenWhenThen, Matchers}
 
 import scala.util.Random
@@ -17,13 +17,13 @@ class BidOrderBookSpec extends TestKit(ActorSystem("BidOrderBookSpec")) with
     system.shutdown()
   }
 
-  val testInstrument = "AAPL"
-
   /** Maximum share price for testing. */
   val maxPrice = 1000.0
 
   /** Maximum number of share for testing. */
   val maxQuantity = 1000000
+
+  val testInstrument = Security("AAPL", maxQuantity)
 
   feature("An BidOrderBook should maintain price priority") {
 

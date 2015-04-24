@@ -19,7 +19,7 @@ class CCPClearingMechanismSpec extends TestKit(ActorSystem("CCPClearingMechanism
 
   def generateRandomPartialFill(askTradingPartyRef: ActorRef,
                                 bidTradingPartyRef: ActorRef,
-                                instrument: String,
+                                instrument: Security,
                                 maxPrice: Double = 1e6,
                                 maxQuantity: Int = 10000): FillLike = {
     val price = generateRandomPrice()
@@ -30,7 +30,7 @@ class CCPClearingMechanismSpec extends TestKit(ActorSystem("CCPClearingMechanism
 
   def generateRandomTotalFill(askTradingPartyRef: ActorRef,
                               bidTradingPartyRef: ActorRef,
-                              instrument: String,
+                              instrument: Security,
                               maxPrice: Double = 1e6,
                               maxQuantity: Int = 10000): FillLike = {
 
@@ -52,6 +52,8 @@ class CCPClearingMechanismSpec extends TestKit(ActorSystem("CCPClearingMechanism
 
   feature("CCPClearingMechanism should process transactions.") {
 
+    val testInstrument = Security("APPL", 1000000)
+
     val clearingMechanismRef = TestActorRef(new CCPClearingMechanism)
     val clearingMechanism = clearingMechanismRef.underlyingActor
 
@@ -60,7 +62,7 @@ class CCPClearingMechanismSpec extends TestKit(ActorSystem("CCPClearingMechanism
 
     scenario("CCPClearingMechanism receives a PartialFill.") {
 
-      val fill = generateRandomPartialFill(askTradingParty.ref, bidTradingParty.ref, "APPL")
+      val fill = generateRandomPartialFill(askTradingParty.ref, bidTradingParty.ref, testInstrument)
 
       // store initial holdings of cash and securities
       val clearingMechanismInitialSecurities = clearingMechanism.securities(fill.instrument)
@@ -101,7 +103,7 @@ class CCPClearingMechanismSpec extends TestKit(ActorSystem("CCPClearingMechanism
 
     scenario("CCPClearingMechanism receives a TotalFill.") {
 
-      val fill = generateRandomTotalFill(askTradingParty.ref, bidTradingParty.ref, "APPL")
+      val fill = generateRandomTotalFill(askTradingParty.ref, bidTradingParty.ref, testInstrument)
 
       // store initial holdings of cash and securities
       val clearingMechanismInitialSecurities = clearingMechanism.securities(fill.instrument)

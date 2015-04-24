@@ -25,15 +25,15 @@ trait SecuritiesHolder {
   this: Actor =>
 
   /* Actor's securities holdings. */
-  val securities: mutable.Map[String, Int]
+  val securities: mutable.Map[Security, Int]
 
   /* Decrement actor's securities holdings. */
-  def deccumulateSecurities(instrument: String, quantity: Int): Unit = {
+  def deccumulateSecurities(instrument: Security, quantity: Int): Unit = {
     securities(instrument) -= quantity
   }
 
   /* Increment actor's securities holdings. */
-  def accumulateSecurities(instrument: String, quantity: Int): Unit = {
+  def accumulateSecurities(instrument: Security, quantity: Int): Unit = {
     securities(instrument) += quantity
   }
 
@@ -48,14 +48,14 @@ trait SecuritiesHolder {
 }
 
 
-case class RequestSecurities(instrument: String, quantity: Int) {
+case class RequestSecurities(instrument: Security, quantity: Int) {
 
   require(quantity > 0)
 
 }
 
 
-case class Securities(instrument: String, quantity: Int) {
+case class Securities(instrument: Security, quantity: Int) {
 
   require(quantity > 0)
 

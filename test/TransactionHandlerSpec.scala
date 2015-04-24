@@ -28,13 +28,17 @@ class TransactionHandlerSpec extends TestKit(ActorSystem("TransactionHandlerSpec
     Random.nextInt(maxQuantity)
   }
 
+  def generateRandomInstrument(maxQuantity: Int = 10000): Security = {
+    Security(Random.nextString(4), generateRandomQuantity(maxQuantity))
+  }
+
   def generateRandomPartialFill(askTradingPartyRef: ActorRef,
                                 bidTradingPartyRef: ActorRef,
                                 maxPrice: Double = 1e6,
                                 maxQuantity: Int = 10000): PartialFill = {
-    val instrument = Random.nextString(4)
-    val price = generateRandomPrice()
-    val quantity = generateRandomQuantity()
+    val instrument = generateRandomInstrument(maxQuantity)
+    val price = generateRandomPrice(maxPrice)
+    val quantity = generateRandomQuantity(maxQuantity)
 
     PartialFill(askTradingPartyRef, bidTradingPartyRef, instrument, price, quantity)
   }
@@ -44,9 +48,9 @@ class TransactionHandlerSpec extends TestKit(ActorSystem("TransactionHandlerSpec
                               maxPrice: Double = 1e6,
                               maxQuantity: Int = 10000): TotalFill = {
 
-    val instrument = Random.nextString(4)
-    val price = generateRandomPrice()
-    val quantity = generateRandomQuantity()
+    val instrument = generateRandomInstrument(maxQuantity)
+    val price = generateRandomPrice(maxPrice)
+    val quantity = generateRandomQuantity(maxQuantity)
 
     TotalFill(askTradingPartyRef, bidTradingPartyRef, instrument, price, quantity)
 
