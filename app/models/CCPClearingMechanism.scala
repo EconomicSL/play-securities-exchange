@@ -16,18 +16,20 @@ limitations under the License.
 
 package models
 
-import akka.actor.{Props, ActorLogging, Actor}
+import akka.actor.Props
 
 import scala.collection.mutable
 
 
 /** Central counter party (CCP) clearing mechanism.
   *
-  * Central counter party inserts itself as trading party with ask and bid actors.
-  * 
+  * @note The key difference between CCP clearing and bilateral clearing is that
+  * CCP inserts itself as the counter-party to both the ask and the bid
+  * trading parties before processing the final transaction. By acting as
+  * a counter-party to every transaction, the CCP assumes all counter-party
+  * risk.
   */
-class CCPClearingMechanism extends Actor with
-  ActorLogging with
+class CCPClearingMechanism extends ClearingMechanismLike with
   CashHolder with
   SecuritiesHolder {
 
@@ -37,32 +39,28 @@ class CCPClearingMechanism extends Actor with
   /* For now assume that central counter party can take negative asset positions. */
   val securities: mutable.Map[String, Int] = mutable.Map[String, Int]().withDefaultValue(0)
 
-  /** Central counter-party (CCP) clearing mechanism behavior
-    *
-    * @note The key difference between CCP clearing and bilateral clearing is that
-    * CCP inserts itself as the counter-party to both the ask and the bid
-    * trading parties before processing the final transaction. By acting as
-    * a counter-party to every transaction, the CCP assumes all counter-party
-    * risk.
-    */
+  /** Central counter-party (CCP) clearing mechanism behavior. */
   val clearingMechanismBehavior: Receive = {
-    case PartialFill(askTradingPartyRef, bidTradingPartyRef, instrument, price, quantity) =>
-      // insert self as counter party to the bid trading party
-      val askTransactionHandler = context.actorOf(Props[TransactionHandler])
-      askTransactionHandler ! PartialFill(self, bidTradingPartyRef, instrument, price, quantity)
 
-      // insert self as counter party to the ask trading party
-      val bidTransactionHandler = context.actorOf(Props[TransactionHandler])
-      bidTransactionHandler ! PartialFill(askTradingPartyRef, self, instrument, price, quantity)
+      case PartialFill(askTradingPartyRef, bidTradingPartyRef, instrument, price, quantity) =>
 
-    case TotalFill(askTradingPartyRef, bidTradingPartyRef, instrument, price, quantity) =>
-      // insert self as counter party to the bid trading party
-      val askTransactionHandler = context.actorOf(Props[TransactionHandler])
-      askTransactionHandler ! TotalFill(self, bidTradingPartyRef, instrument, price, quantity)
+        // insert self as counter party to the bid trading party
+        val askTransactionHandler = context.actorOf(Props[TransactionHandler])
+        askTransactionHandler ! PartialFill(self, bidTradingPartyRef, instrument, price, quantity)
 
-      // insert self as counter party to the ask trading party
-      val bidTransactionHandler = context.actorOf(Props[TransactionHandler])
-      bidTransactionHandler ! TotalFill(askTradingPartyRef, self, instrument, price, quantity)
+        // insert self as counter party to the ask trading party
+        val bidTransactionHandler = context.actorOf(Props[TransactionHandler])
+        bidTransactionHandler ! PartialFill(askTradingPartyRef, self, instrument, price, quantity)
+
+      case TotalFill(askTradingPartyRef, bidTradingPartyRef, instrument, price, quantity) =>
+        // insert self as counter party to the bid trading party
+        val askTransactionHandler = context.actorOf(Props[TransactionHandler])
+        askTransactionHandler ! TotalFill(self, bidTradingPartyRef, instrument, price, quantity)
+
+        // insert self as counter party to the ask trading party
+        val bidTransactionHandler = context.actorOf(Props[TransactionHandler])
+        bidTransactionHandler ! TotalFill(askTradingPartyRef, self, instrument, price, quantity)
+
   }
 
   def receive: Receive = {

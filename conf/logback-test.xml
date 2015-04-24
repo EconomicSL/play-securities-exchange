@@ -1,7 +1,7 @@
 <configuration>
     <appender name="FILLS" class="ch.qos.logback.core.FileAppender">
         <filter class="models.FillsFilter" />
-        <file>logs/transactions.log</file>
+        <file>logs/fills.log</file>
         <append>false</append>
         <encoder>
             <pattern>%X{akkaTimestamp} %-5level[%thread] %logger{1} - %msg%n</pattern>

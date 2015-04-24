@@ -16,12 +16,11 @@ limitations under the License.
 
 package models
 
-import akka.actor.{ActorLogging, Actor}
-import akka.agent.Agent
+import akka.actor.ActorRef
 
 
-class DoubleAuctionMechanism(val instrument: String) extends Actor with
-  ActorLogging with
+case class DoubleAuctionMechanism(clearingMechanism: ActorRef,
+                                  instrument: String) extends AuctionMechanismLike with
   MatchingEngineLike {
 
   val askOrderBook: AskOrderBook = AskOrderBook(instrument)
@@ -140,8 +139,8 @@ class DoubleAuctionMechanism(val instrument: String) extends Actor with
   def generatePartialFill(ask: AskOrderLike, bid: BidOrderLike, price: Double, quantity: Int): Unit = {
     val partialFill = PartialFill(ask.tradingPartyRef, bid.tradingPartyRef, instrument, price, quantity)
     log.info(s",${System.nanoTime()}" + partialFill.toString)
-    informParticipants(partialFill)
     updateReferencePrice(price)
+    clearingMechanism ! partialFill
   }
 
   /** Generate a totally filled order.
@@ -154,17 +153,8 @@ class DoubleAuctionMechanism(val instrument: String) extends Actor with
   def generateTotalFill(ask: AskOrderLike, bid: BidOrderLike, price: Double, quantity: Int): Unit = {
     val totalFill = TotalFill(ask.tradingPartyRef, bid.tradingPartyRef, instrument, price, quantity)
     log.info(s",${System.nanoTime()}" + totalFill.toString)
-    informParticipants(totalFill)
     updateReferencePrice(price)
-  }
-
-  /** Inform participants of the filled order.
-    *
-    * @param order a partially or totally filled order
-    */
-  def informParticipants(order: FillLike): Unit ={
-    order.askTradingPartyRef ! order
-    order.bidTradingPartyRef ! order
+    clearingMechanism ! totalFill
   }
 
   /** Update the reference price for the security. */
