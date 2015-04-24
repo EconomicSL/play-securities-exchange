@@ -5,9 +5,20 @@
 
 A large-scale agent-based simulation model of a securities exchange.
 
+## Code coverage
+The project uses the [sbt-scoverage](https://github.com/scoverage/sbt-scoverage) plugin to generate test coverage statistics. To run the tests with coverage enabled simply run the `sbt clean coverage test` command from the project root directory:
+
+    $ sbt clean coverage test
+
+After the tests have finished you can then run
+
+    $ sbt coverageReport
+
+to generate the reports. The generated code coverage reports can be found inside `target/scoverage-report`.
+
 ## API documentation
 
-The API documentation for the model is very much a work in progress. To view the most current version of the documentation simply run the `sbt doc` command from the project root directory:
+The API documentation for the project is very much a work in progress. To generate the most current version of the documentation simply run the `sbt doc` command from the project root directory:
 
     $ sbt doc
     
