@@ -16,13 +16,13 @@ limitations under the License.
 
 package models
 
-import akka.actor.Actor
+import akka.actor.{ActorLogging, Actor}
 
 import scala.collection.mutable
 
 
-trait SecuritiesHolder {
-  this: Actor =>
+trait SecuritiesHolderLike {Re
+  this: Actor with ActorLogging =>
 
   /* Actor's securities holdings. */
   val securities: mutable.Map[Security, Int]

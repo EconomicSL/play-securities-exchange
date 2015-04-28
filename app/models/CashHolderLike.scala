@@ -16,7 +16,7 @@ limitations under the License.
 
 package models
 
-import akka.actor.Actor
+import akka.actor.{ActorLogging, Actor}
 
 
 /** CashHolder trait
@@ -24,8 +24,8 @@ import akka.actor.Actor
   * CashHolder trait should be mixed in with any Actor that needs to process
   * cash transactions.
   */
-trait CashHolder {
-  this: Actor =>
+trait CashHolderLike {
+  this: Actor with ActorLogging =>
 
   /* Actor's cash holdings. */
   var cash: Double
