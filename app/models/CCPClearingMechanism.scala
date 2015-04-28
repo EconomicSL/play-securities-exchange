@@ -30,8 +30,8 @@ import scala.collection.mutable
   * risk.
   */
 class CCPClearingMechanism extends ClearingMechanismLike with
-  CashHolder with
-  SecuritiesHolder {
+  CashHolderLike with
+  SecuritiesHolderLike {
 
   /* For now assume that central counter party has "deep pockets". */
   var cash: Double = Double.PositiveInfinity
