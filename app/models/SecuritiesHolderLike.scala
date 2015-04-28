@@ -21,7 +21,7 @@ import akka.actor.{ActorLogging, Actor}
 import scala.collection.mutable
 
 
-trait SecuritiesHolderLike {Re
+trait SecuritiesHolderLike {
   this: Actor with ActorLogging =>
 
   /* Actor's securities holdings. */
