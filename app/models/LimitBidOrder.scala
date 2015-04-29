@@ -32,7 +32,7 @@ import akka.actor.ActorRef
 case class LimitBidOrder(tradingPartyRef: ActorRef,
                          instrument: AssetLike,
                          limitPrice: Double,
-                         quantity: Int) extends
+                         quantity: Double) extends
   BidOrderLike with
   LimitPriceLike {
 
@@ -63,7 +63,7 @@ case class LimitBidOrder(tradingPartyRef: ActorRef,
     * @param newQuantity Desired quantity for the new order.
     * @return new limit order ask.
     */
-  override def split(newQuantity: Int): BidOrderLike = {
+  override def split(newQuantity: Double): BidOrderLike = {
     LimitBidOrder(tradingPartyRef, instrument, limitPrice, newQuantity)
   }
 

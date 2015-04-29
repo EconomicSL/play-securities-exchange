@@ -35,9 +35,9 @@ trait TraderLike {
 
   def decideBidPrice(): Double
 
-  def decideAskQuantity(): Int
+  def decideAskQuantity(): Double
 
-  def decideBidQuantity(): Int
+  def decideBidQuantity(): Double
 
   def generateNewAskOrder(): AskOrderLike
 
