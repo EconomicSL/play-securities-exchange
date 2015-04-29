@@ -16,37 +16,7 @@ limitations under the License.
 
 package models
 
-import akka.actor.{ActorLogging, ActorRef, Actor}
-
-
-trait TraderLike {
-  this: Actor with ActorLogging =>
-
-  val market: ActorRef
-
-  val traderLikeBehavior: Receive = {
-    case StartTrading =>
-      market ! generateNewOrder()
-    case OrderReceived =>
-      market ! generateNewOrder()
-  }
-
-  def decideAskPrice(): Double
-
-  def decideBidPrice(): Double
-
-  def decideAskQuantity(): Int
-
-  def decideBidQuantity(): Int
-
-  def generateNewAskOrder(): AskOrderLike
-
-  def generateNewBidOrder(): BidOrderLike
-
-  def generateNewOrder(): OrderLike
+/** Base trait for all Asset classes */
+trait AssetLike {
 
 }
-
-
-case object StartTrading
-

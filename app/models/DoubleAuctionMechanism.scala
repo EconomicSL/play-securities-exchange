@@ -19,8 +19,7 @@ package models
 import akka.actor.ActorRef
 
 
-case class DoubleAuctionMechanism(clearingMechanism: ActorRef,
-                                  instrument: Security) extends AuctionMechanismLike with
+case class DoubleAuctionMechanism(clearingMechanism: ActorRef, instrument: AssetLike) extends AuctionMechanismLike with
   MatchingEngineLike {
 
   val askOrderBook: AskOrderBook = AskOrderBook(instrument)

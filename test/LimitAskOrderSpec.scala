@@ -1,6 +1,6 @@
 import akka.actor.ActorSystem
 import akka.testkit.TestKit
-import models.{Security, LimitBidOrder, LimitAskOrder}
+import models.{Stock, LimitBidOrder, LimitAskOrder}
 import org.scalatest.{GivenWhenThen, FeatureSpecLike, Matchers}
 
 import scala.util.Random
@@ -22,7 +22,7 @@ class LimitAskOrderSpec extends TestKit(ActorSystem("TestSystem")) with
   /** Maximum number of share for testing. */
   val maxQuantity = 1000000
 
-  val testInstrument = Security("GOOG", maxQuantity)
+  val testInstrument = Stock("GOOG", maxQuantity)
 
   feature("LimitAskOrder should be able to split itself.") {
 

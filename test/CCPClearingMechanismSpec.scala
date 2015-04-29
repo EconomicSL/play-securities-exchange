@@ -19,7 +19,7 @@ class CCPClearingMechanismSpec extends TestKit(ActorSystem("CCPClearingMechanism
 
   def generateRandomPartialFill(askTradingPartyRef: ActorRef,
                                 bidTradingPartyRef: ActorRef,
-                                instrument: Security,
+                                instrument: Stock,
                                 maxPrice: Double = 1e6,
                                 maxQuantity: Int = 10000): FillLike = {
     val price = generateRandomPrice()
@@ -30,7 +30,7 @@ class CCPClearingMechanismSpec extends TestKit(ActorSystem("CCPClearingMechanism
 
   def generateRandomTotalFill(askTradingPartyRef: ActorRef,
                               bidTradingPartyRef: ActorRef,
-                              instrument: Security,
+                              instrument: Stock,
                               maxPrice: Double = 1e6,
                               maxQuantity: Int = 10000): FillLike = {
 
@@ -52,7 +52,7 @@ class CCPClearingMechanismSpec extends TestKit(ActorSystem("CCPClearingMechanism
 
   feature("CCPClearingMechanism should process transactions.") {
 
-    val testInstrument = Security("APPL", 1000000)
+    val testInstrument = Stock("APPL", 1000000)
 
     val clearingMechanismRef = TestActorRef(new CCPClearingMechanism)
     val clearingMechanism = clearingMechanismRef.underlyingActor
@@ -65,7 +65,7 @@ class CCPClearingMechanismSpec extends TestKit(ActorSystem("CCPClearingMechanism
       val fill = generateRandomPartialFill(askTradingParty.ref, bidTradingParty.ref, testInstrument)
 
       // store initial holdings of cash and securities
-      val clearingMechanismInitialSecurities = clearingMechanism.securities(fill.instrument)
+      val clearingMechanismInitialSecurities = clearingMechanism.assets(fill.instrument)
       val clearingMechanismInitialCash = clearingMechanism.cash
 
       When("CCPClearingMechanism receives a PartialFill")
@@ -74,8 +74,8 @@ class CCPClearingMechanismSpec extends TestKit(ActorSystem("CCPClearingMechanism
 
       Then("AskTradingParty should receive a request for Securities")
 
-      askTradingParty.expectMsg(RequestSecurities(fill.instrument, fill.quantity))
-      askTradingParty.reply(Securities(fill.instrument, fill.quantity))
+      askTradingParty.expectMsg(RequestAssets(fill.instrument, fill.quantity))
+      askTradingParty.reply(Assets(fill.instrument, fill.quantity))
 
       Then("BidTradingParty should receive a request for Payment")
 
@@ -89,11 +89,11 @@ class CCPClearingMechanismSpec extends TestKit(ActorSystem("CCPClearingMechanism
 
       Then("BidTradingParty should receive a Securities")
 
-      bidTradingParty.expectMsg(Securities(fill.instrument, fill.quantity))
+      bidTradingParty.expectMsg(Assets(fill.instrument, fill.quantity))
 
       Then("CCPClearingMechanism securities holdings should remain unchanged.")
 
-      clearingMechanism.securities(fill.instrument) should be(clearingMechanismInitialSecurities)
+      clearingMechanism.assets(fill.instrument) should be(clearingMechanismInitialSecurities)
 
       Then("CCPClearingMechanism cash holdings should remain unchanged.")
 
@@ -106,7 +106,7 @@ class CCPClearingMechanismSpec extends TestKit(ActorSystem("CCPClearingMechanism
       val fill = generateRandomTotalFill(askTradingParty.ref, bidTradingParty.ref, testInstrument)
 
       // store initial holdings of cash and securities
-      val clearingMechanismInitialSecurities = clearingMechanism.securities(fill.instrument)
+      val clearingMechanismInitialSecurities = clearingMechanism.assets(fill.instrument)
       val clearingMechanismInitialCash = clearingMechanism.cash
 
       When("CCPClearingMechanism receives a PartialFill")
@@ -115,8 +115,8 @@ class CCPClearingMechanismSpec extends TestKit(ActorSystem("CCPClearingMechanism
 
       Then("AskTradingParty should receive a request for Securities")
 
-      askTradingParty.expectMsg(RequestSecurities(fill.instrument, fill.quantity))
-      askTradingParty.reply(Securities(fill.instrument, fill.quantity))
+      askTradingParty.expectMsg(RequestAssets(fill.instrument, fill.quantity))
+      askTradingParty.reply(Assets(fill.instrument, fill.quantity))
 
       Then("BidTradingParty should receive a request for Payment")
 
@@ -130,11 +130,11 @@ class CCPClearingMechanismSpec extends TestKit(ActorSystem("CCPClearingMechanism
 
       Then("BidTradingParty should receive a Securities")
 
-      bidTradingParty.expectMsg(Securities(fill.instrument, fill.quantity))
+      bidTradingParty.expectMsg(Assets(fill.instrument, fill.quantity))
 
       Then("CCPClearingMechanism securities holdings should remain unchanged.")
 
-      clearingMechanism.securities(fill.instrument) should be(clearingMechanismInitialSecurities)
+      clearingMechanism.assets(fill.instrument) should be(clearingMechanismInitialSecurities)
 
       Then("CCPClearingMechanism cash holdings should remain unchanged.")
 

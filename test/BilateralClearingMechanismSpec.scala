@@ -19,7 +19,7 @@ class BilateralClearingMechanismSpec extends TestKit(ActorSystem("NoiseTraderSpe
 
   def generateRandomPartialFill(askTradingPartyRef: ActorRef,
                                 bidTradingPartyRef: ActorRef,
-                                instrument: Security,
+                                instrument: Stock,
                                 maxPrice: Double = 1e6,
                                 maxQuantity: Int = 10000): FillLike = {
     val price = generateRandomPrice()
@@ -30,7 +30,7 @@ class BilateralClearingMechanismSpec extends TestKit(ActorSystem("NoiseTraderSpe
 
   def generateRandomTotalFill(askTradingPartyRef: ActorRef,
                               bidTradingPartyRef: ActorRef,
-                              instrument: Security,
+                              instrument: Stock,
                               maxPrice: Double = 1e6,
                               maxQuantity: Int = 10000): FillLike = {
 
@@ -51,7 +51,7 @@ class BilateralClearingMechanismSpec extends TestKit(ActorSystem("NoiseTraderSpe
 
   feature("BilateralClearingMechanism should process transactions.") {
 
-    val testInstrument = Security("APPL", 1000000)
+    val testInstrument = Stock("APPL", 1000000)
     val clearingMechanism = TestActorRef(Props[BilateralClearingMechanism])
 
     scenario("BilateralClearingMechanism receives a PartialFill.") {
@@ -66,7 +66,7 @@ class BilateralClearingMechanismSpec extends TestKit(ActorSystem("NoiseTraderSpe
 
       Then("AskTradingParty should receive a request for Securities")
 
-      val securitiesRequest = RequestSecurities(fill.instrument, fill.quantity)
+      val securitiesRequest = RequestAssets(fill.instrument, fill.quantity)
       askTradingParty.expectMsg(securitiesRequest)
 
       Then("BidTradingParty should receive a request for Payment")
@@ -89,7 +89,7 @@ class BilateralClearingMechanismSpec extends TestKit(ActorSystem("NoiseTraderSpe
 
       Then("AskTradingParty should receive a request for Securities")
 
-      val securitiesRequest = RequestSecurities(fill.instrument, fill.quantity)
+      val securitiesRequest = RequestAssets(fill.instrument, fill.quantity)
       askTradingParty.expectMsg(securitiesRequest)
 
       Then("BidTradingParty should receive a request for Payment")
