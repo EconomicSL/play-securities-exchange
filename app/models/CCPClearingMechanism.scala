@@ -16,7 +16,7 @@ limitations under the License.
 
 package models
 
-import akka.actor.Props
+import akka.actor.{ActorRef, Props}
 
 import scala.collection.mutable
 
@@ -39,28 +39,34 @@ class CCPClearingMechanism extends ClearingMechanismLike with
   /* For now assume that central counter party can take negative asset positions. */
   val securities: mutable.Map[Security, Int] = mutable.Map[Security, Int]().withDefaultValue(0)
 
+  /* BilateralClearingMechanism can be used to process novated fills. */
+  val bilateralClearingMechanism: ActorRef = context.actorOf(Props[BilateralClearingMechanism])
+
   /** Central counter-party (CCP) clearing mechanism behavior. */
   val clearingMechanismBehavior: Receive = {
+    case fill: FillLike =>
+      val novatedFills = novate(fill)
+      novatedFills foreach(novatedFill => bilateralClearingMechanism ! novatedFill)
+  }
 
-      case PartialFill(askTradingPartyRef, bidTradingPartyRef, instrument, price, quantity) =>
-
-        // insert self as counter party to the bid trading party
-        val askTransactionHandler = context.actorOf(Props[TransactionHandler])
-        askTransactionHandler ! PartialFill(self, bidTradingPartyRef, instrument, price, quantity)
-
-        // insert self as counter party to the ask trading party
-        val bidTransactionHandler = context.actorOf(Props[TransactionHandler])
-        bidTransactionHandler ! PartialFill(askTradingPartyRef, self, instrument, price, quantity)
-
-      case TotalFill(askTradingPartyRef, bidTradingPartyRef, instrument, price, quantity) =>
-        // insert self as counter party to the bid trading party
-        val askTransactionHandler = context.actorOf(Props[TransactionHandler])
-        askTransactionHandler ! TotalFill(self, bidTradingPartyRef, instrument, price, quantity)
-
-        // insert self as counter party to the ask trading party
-        val bidTransactionHandler = context.actorOf(Props[TransactionHandler])
-        bidTransactionHandler ! TotalFill(askTradingPartyRef, self, instrument, price, quantity)
-
+  /** Novate a FillLike between two trading counterparties.
+    *
+    * @note The substitution of counterparties is typically accomplished through
+    *       a legal process called contract novation. Novation discharges the
+    *       contract between the original trading counterparties and creates two new,
+    *       legally binding contracts – one between each of the original trading
+    *       counterparties and the central counterparty.
+    * @param fill a FillLike between two trading counterparties.
+    * @return a list of two FillLikes - one between each of the original trading
+    *         counterparties and the central counterparty.
+    */
+  def novate(fill: FillLike): List[FillLike] = fill match {
+    case fill: PartialFill =>
+      List(PartialFill(self, fill.bidTradingPartyRef, fill.instrument, fill.price, fill.quantity),
+           PartialFill(fill.askTradingPartyRef, self, fill.instrument, fill.price, fill.quantity))
+    case fill: TotalFill =>
+      List(TotalFill(self, fill.bidTradingPartyRef, fill.instrument, fill.price, fill.quantity),
+           TotalFill(fill.askTradingPartyRef, self, fill.instrument, fill.price, fill.quantity))
   }
 
   def receive: Receive = {
