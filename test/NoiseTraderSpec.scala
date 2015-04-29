@@ -18,7 +18,7 @@ class NoiseTraderSpec extends TestKit(ActorSystem("NoiseTraderSpec")) with
     system.shutdown()
   }
 
-  def generateNoiseTrader(market: ActorRef, maxCash: Double = 1e6, maxHoldings: Int = 10000): NoiseTrader = {
+  def generateNoiseTrader(market: ActorRef, maxCash: Double = 1e6): NoiseTrader = {
 
     val cash = generateRandomCashHoldings(maxCash)
     val prng = new Random()
@@ -31,7 +31,7 @@ class NoiseTraderSpec extends TestKit(ActorSystem("NoiseTraderSpec")) with
     Random.nextDouble() * maxAmount
   }
 
-  def generateRandomAsset(symbol: String, maxQuantity: Double = 10000): Assets = {
+  def generateRandomAsset(symbol: String, maxQuantity: Double = 1e6): Assets = {
 
     Assets(Stock(symbol), generateRandomQuantity(maxQuantity))
 
@@ -41,11 +41,11 @@ class NoiseTraderSpec extends TestKit(ActorSystem("NoiseTraderSpec")) with
     Random.nextDouble() * maxCash
   }
 
-  def generateRandomPrice(maxPrice: Double = 1000.0): Double = {
+  def generateRandomPrice(maxPrice: Double = 1e3): Double = {
     Random.nextDouble() * maxPrice
   }
 
-  def generateRandomQuantity(maxQuantity: Double = 10000.0): Double = {
+  def generateRandomQuantity(maxQuantity: Double = 1e6): Double = {
     Random.nextDouble() * maxQuantity
   }
 
