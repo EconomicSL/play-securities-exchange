@@ -24,16 +24,16 @@ import scala.collection.mutable
 trait AssetsHolderLike {
   this: Actor with ActorLogging =>
 
-  /* Actor's securities holdings. */
-  val assets: mutable.Map[AssetLike, Int]
+  /* For now assume that AssetsHolderLike can take negative asset positions. */
+  val assets: mutable.Map[AssetLike, Double] = mutable.Map[AssetLike, Double]().withDefaultValue(0.0)
 
   /* Decrement actor's securities holdings. */
-  def deccumulate(asset: AssetLike, quantity: Int): Unit = {
+  def deccumulate(asset: AssetLike, quantity: Double): Unit = {
     assets(asset) -= quantity
   }
 
   /* Increment actor's securities holdings. */
-  def accumulate(asset: AssetLike, quantity: Int): Unit = {
+  def accumulate(asset: AssetLike, quantity: Double): Unit = {
     assets(asset) += quantity
   }
 
@@ -48,16 +48,16 @@ trait AssetsHolderLike {
 }
 
 
-case class RequestAssets(asset: AssetLike, quantity: Int) {
+case class RequestAssets(asset: AssetLike, quantity: Double) {
 
-  require(quantity > 0)
+  require(quantity > 0.0)
 
 }
 
 
-case class Assets(instrument: AssetLike, quantity: Int) {
+case class Assets(instrument: AssetLike, quantity: Double) {
 
-  require(quantity > 0)
+  require(quantity > 0.0)
 
 }
 

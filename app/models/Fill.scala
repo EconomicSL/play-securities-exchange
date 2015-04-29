@@ -29,7 +29,7 @@ sealed trait FillLike {
 
   val price: Double
 
-  val quantity: Int
+  val quantity: Double
   
 }
 
@@ -45,7 +45,7 @@ case class PartialFill(askTradingPartyRef: ActorRef,
                        bidTradingPartyRef: ActorRef,
                        instrument: AssetLike,
                        price: Double,
-                       quantity: Int) extends FillLike {
+                       quantity: Double) extends FillLike {
 
   require(price > 0, "Price must be strictly positive.")
   require(quantity > 0, "Quantity must be strictly positive.")
@@ -68,7 +68,7 @@ case class TotalFill(askTradingPartyRef: ActorRef,
                      bidTradingPartyRef: ActorRef,
                      instrument: AssetLike,
                      price: Double,
-                     quantity: Int) extends FillLike {
+                     quantity: Double) extends FillLike {
 
   require(price > 0, "Price must be strictly positive.")
   require(quantity > 0, "Quantity must be strictly positive.")

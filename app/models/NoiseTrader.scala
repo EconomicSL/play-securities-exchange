@@ -23,8 +23,7 @@ import scala.collection.mutable
 import scala.util.Random
 
 
-case class NoiseTrader(assets: mutable.Map[AssetLike, Int],
-                       var cash: Double,
+case class NoiseTrader(var cash: Double,
                        market: ActorRef,
                        prng: Random) extends Actor
   with ActorLogging
@@ -36,7 +35,7 @@ case class NoiseTrader(assets: mutable.Map[AssetLike, Int],
 
   val maxPrice: Double = conf.getDouble("maxPrice")
   
-  val maxQuantity: Int = conf.getInt("maxQuantity")
+  val maxQuantity: Double = conf.getDouble("maxQuantity")
 
   val askOrderProbability: Double = conf.getDouble("askOrderProbability")
 
@@ -48,12 +47,12 @@ case class NoiseTrader(assets: mutable.Map[AssetLike, Int],
     prng.nextDouble() * maxPrice
   }
 
-  def decideAskQuantity(): Int = {
-    1 + prng.nextInt(maxQuantity)
+  def decideAskQuantity(): Double = {
+    prng.nextDouble() * maxQuantity
   }
 
-  def decideBidQuantity(): Int = {
-    1 + prng.nextInt(maxQuantity)
+  def decideBidQuantity(): Double = {
+    prng.nextDouble() * maxQuantity
   }
 
   def decideInstrument(): AssetLike = {
