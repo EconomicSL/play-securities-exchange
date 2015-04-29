@@ -24,7 +24,7 @@ import akka.actor.Actor
   * CashHolder trait should be mixed in with any Actor that needs to process
   * cash transactions.
   */
-trait CashHolder {
+trait CashHolderLike {
   this: Actor =>
 
   /* Actor's cash holdings. */

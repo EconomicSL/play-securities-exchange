@@ -16,46 +16,46 @@ limitations under the License.
 
 package models
 
-import akka.actor.Actor
+import akka.actor.{ActorLogging, Actor}
 
 import scala.collection.mutable
 
 
-trait SecuritiesHolder {
-  this: Actor =>
+trait AssetsHolderLike {
+  this: Actor with ActorLogging =>
 
   /* Actor's securities holdings. */
-  val securities: mutable.Map[Security, Int]
+  val assets: mutable.Map[AssetLike, Int]
 
   /* Decrement actor's securities holdings. */
-  def deccumulateSecurities(instrument: Security, quantity: Int): Unit = {
-    securities(instrument) -= quantity
+  def deccumulate(asset: AssetLike, quantity: Int): Unit = {
+    assets(asset) -= quantity
   }
 
   /* Increment actor's securities holdings. */
-  def accumulateSecurities(instrument: Security, quantity: Int): Unit = {
-    securities(instrument) += quantity
+  def accumulate(asset: AssetLike, quantity: Int): Unit = {
+    assets(asset) += quantity
   }
 
-  def securitiesHolderBehavior: Receive = {
-    case RequestSecurities(instrument, quantity) =>
-      deccumulateSecurities(instrument, quantity)
-      sender() ! Securities(instrument, quantity)
-    case Securities(instrument, quantity) =>
-      accumulateSecurities(instrument, quantity)
+  def assetsHolderBehavior: Receive = {
+    case RequestAssets(asset, quantity) =>
+      deccumulate(asset, quantity)
+      sender() ! Assets(asset, quantity)
+    case Assets(asset, quantity) =>
+      accumulate(asset, quantity)
   }
 
 }
 
 
-case class RequestSecurities(instrument: Security, quantity: Int) {
+case class RequestAssets(asset: AssetLike, quantity: Int) {
 
   require(quantity > 0)
 
 }
 
 
-case class Securities(instrument: Security, quantity: Int) {
+case class Assets(instrument: AssetLike, quantity: Int) {
 
   require(quantity > 0)
 

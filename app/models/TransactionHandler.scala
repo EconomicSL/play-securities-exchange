@@ -34,7 +34,7 @@ class TransactionHandler extends Actor {
 
   var payment: Option[Payment] = None
 
-  var securities: Option[Securities] = None
+  var securities: Option[Assets] = None
 
   def paymentReceived: Boolean = {
     payment.isDefined
@@ -47,7 +47,7 @@ class TransactionHandler extends Actor {
   def receive: Receive = {
     case fill: FillLike =>
       seller = fill.askTradingPartyRef; buyer = fill.bidTradingPartyRef
-      seller ! RequestSecurities(fill.instrument, fill.quantity)
+      seller ! RequestAssets(fill.instrument, fill.quantity)
       buyer ! RequestPayment(fill.price * fill.quantity)
     case Payment(amount) =>
       payment = Some(Payment(amount))
@@ -56,8 +56,8 @@ class TransactionHandler extends Actor {
         seller ! payment.get
         context.stop(self)
       }
-    case Securities(instrument, quantity) =>
-      securities = Some(Securities(instrument, quantity))
+    case Assets(instrument, quantity) =>
+      securities = Some(Assets(instrument, quantity))
       if (paymentReceived) {
         buyer ! securities.get
         seller ! payment.get

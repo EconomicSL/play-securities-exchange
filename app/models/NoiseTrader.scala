@@ -16,20 +16,21 @@ limitations under the License.
 
 package models
 
-import akka.actor.{ActorRef, Actor}
+import akka.actor.{ActorLogging, ActorRef, Actor}
 import com.typesafe.config.ConfigFactory
 
 import scala.collection.mutable
 import scala.util.Random
 
 
-case class NoiseTrader(securities: mutable.Map[Security, Int],
+case class NoiseTrader(assets: mutable.Map[AssetLike, Int],
                        var cash: Double,
                        market: ActorRef,
-                       prng: Random) extends Actor with
-  TraderLike with
-  CashHolder with
-  SecuritiesHolder {
+                       prng: Random) extends Actor
+  with ActorLogging
+  with TraderLike
+  with CashHolderLike
+  with AssetsHolderLike {
 
   val conf = ConfigFactory.load("traders.conf")
 
@@ -55,9 +56,9 @@ case class NoiseTrader(securities: mutable.Map[Security, Int],
     1 + prng.nextInt(maxQuantity)
   }
 
-  def decideInstrument(): Security = {
-    val idx = prng.nextInt(securities.size)
-    securities.keys.toList(idx)
+  def decideInstrument(): AssetLike = {
+    val idx = prng.nextInt(assets.size)
+    assets.keys.toList(idx)
   }
 
   def generateNewAskOrder(): AskOrderLike = {
@@ -77,7 +78,7 @@ case class NoiseTrader(securities: mutable.Map[Security, Int],
   }
 
   def receive: Receive = {
-    traderLikeBehavior orElse cashHolderBehavior orElse securitiesHolderBehavior
+    traderLikeBehavior orElse cashHolderBehavior orElse assetsHolderBehavior
   }
 
 }

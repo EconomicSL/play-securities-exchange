@@ -1,6 +1,6 @@
 import akka.actor.ActorSystem
 import akka.testkit.TestKit
-import models.{Security, LimitAskOrder, AskOrderBook}
+import models.{Stock, LimitAskOrder, AskOrderBook}
 import org.scalatest.{BeforeAndAfterAll, FeatureSpecLike, GivenWhenThen, Matchers}
 
 import scala.util.Random
@@ -23,7 +23,7 @@ class AskOrderBookSpec extends TestKit(ActorSystem("AskOrderBookSpec")) with
   /** Maximum number of share for testing. */
   val maxQuantity = 1000000
 
-  val testInstrument = Security("AAPL", maxQuantity)
+  val testInstrument = Stock("AAPL", maxQuantity)
 
   feature("An AskOrderBook should maintain price priority") {
 
