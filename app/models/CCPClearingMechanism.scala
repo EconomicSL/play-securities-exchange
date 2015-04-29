@@ -18,8 +18,6 @@ package models
 
 import akka.actor.{ActorRef, Props}
 
-import scala.collection.mutable
-
 
 /** Central counter party (CCP) clearing mechanism.
   *
@@ -29,15 +27,11 @@ import scala.collection.mutable
   * a counter-party to every transaction, the CCP assumes all counter-party
   * risk.
   */
-class CCPClearingMechanism extends ClearingMechanismLike with
-  CashHolder with
-  SecuritiesHolder {
+class CCPClearingMechanism extends ClearingMechanismLike
+  with AssetsHolderLike {
 
-  /* For now assume that central counter party has "deep pockets". */
+  /** Central counterparty For now assume that central counter party has "deep pockets". */
   var cash: Double = Double.PositiveInfinity
-
-  /* For now assume that central counter party can take negative asset positions. */
-  val securities: mutable.Map[Security, Int] = mutable.Map[Security, Int]().withDefaultValue(0)
 
   /* BilateralClearingMechanism can be used to process novated fills. */
   val bilateralClearingMechanism: ActorRef = context.actorOf(Props[BilateralClearingMechanism])
@@ -70,7 +64,7 @@ class CCPClearingMechanism extends ClearingMechanismLike with
   }
 
   def receive: Receive = {
-    clearingMechanismBehavior orElse cashHolderBehavior orElse securitiesHolderBehavior
+    clearingMechanismBehavior orElse assetsHolderBehavior
   }
   
 }

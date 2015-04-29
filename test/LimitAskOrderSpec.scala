@@ -1,6 +1,6 @@
 import akka.actor.ActorSystem
 import akka.testkit.TestKit
-import models.{Security, LimitBidOrder, LimitAskOrder}
+import models.{Stock, LimitBidOrder, LimitAskOrder}
 import org.scalatest.{GivenWhenThen, FeatureSpecLike, Matchers}
 
 import scala.util.Random
@@ -20,21 +20,25 @@ class LimitAskOrderSpec extends TestKit(ActorSystem("TestSystem")) with
   val maxPrice = 1000.0
 
   /** Maximum number of share for testing. */
-  val maxQuantity = 1000000
+  val maxQuantity = 1e6
 
-  val testInstrument = Security("GOOG", maxQuantity)
+  val testInstrument = Stock("GOOG")
+
+  def generateRandomQuantity(maxQuantity: Double = 1e6): Double = {
+    Random.nextDouble() * maxQuantity
+  }
 
   feature("LimitAskOrder should be able to split itself.") {
 
     Given("some limit ask order")
 
     val price = Random.nextDouble() * maxPrice
-    val quantity = Random.nextInt(maxQuantity)
+    val quantity = generateRandomQuantity(maxQuantity)
     val limitAskOrder = LimitAskOrder(testActor, testInstrument, price, quantity)
 
     Then("that limit ask order should be able to split itself.")
 
-    val newQuantity = quantity % Random.nextInt(quantity)
+    val newQuantity = generateRandomQuantity(quantity)
     val splitLimitAskOrder = LimitAskOrder(testActor, testInstrument, price, newQuantity)
 
     limitAskOrder.split(newQuantity) should be (splitLimitAskOrder)
@@ -48,28 +52,28 @@ class LimitAskOrderSpec extends TestKit(ActorSystem("TestSystem")) with
       Given("some limit ask order")
 
       val askPrice = Random.nextDouble() * maxPrice
-      val askQuantity = Random.nextInt(maxQuantity)
+      val askQuantity = generateRandomQuantity(maxQuantity)
       val limitAskOrder = LimitAskOrder(testActor, testInstrument, askPrice, askQuantity)
 
       Given("some limit bid order whose price exceeds that of the limit ask order")
 
       val bidPrice = (1 + Random.nextDouble()) * askPrice
-      val bidQuantity = Random.nextInt(maxQuantity)
+      val bidQuantity = generateRandomQuantity(maxQuantity)
       val crossingLimitBidOrder = LimitBidOrder(testActor, testInstrument, bidPrice, bidQuantity)
 
       Then("that limit bid order should cross with the limit ask order.")
 
-      limitAskOrder.crosses(crossingLimitBidOrder) should be(true)
+      assert(limitAskOrder.crosses(crossingLimitBidOrder))
 
       Given("some limit bid order whose price does not exceed that of the limit ask order")
 
       val bidPrice2 = Random.nextDouble() * askPrice
-      val bidQuantity2 = Random.nextInt(maxQuantity)
+      val bidQuantity2 = generateRandomQuantity(maxQuantity)
       val otherLimitBidOrder = LimitBidOrder(testActor, testInstrument, bidPrice2, bidQuantity2)
 
-      Then("that limit ask order should cross with the limit bid order.")
+      Then("that limit ask order should not cross with the limit bid order.")
 
-      limitAskOrder.crosses(otherLimitBidOrder) should be(false)
+      assert(! limitAskOrder.crosses(otherLimitBidOrder))
 
     }
 
@@ -82,13 +86,13 @@ class LimitAskOrderSpec extends TestKit(ActorSystem("TestSystem")) with
       Given("some limit ask order")
 
       val askPrice = Random.nextDouble() * maxPrice
-      val askQuantity = Random.nextInt(maxQuantity)
+      val askQuantity = generateRandomQuantity(maxQuantity)
       val limitAskOrder = LimitAskOrder(testActor, testInstrument, askPrice, askQuantity)
 
       Given("some limit bid order whose price exceeds that of the limit ask order")
 
       val bidPrice = (1 + Random.nextDouble()) * askPrice
-      val bidQuantity = Random.nextInt(maxQuantity)
+      val bidQuantity = generateRandomQuantity(maxQuantity)
       val crossingLimitBidOrder = LimitBidOrder(testActor, testInstrument, bidPrice, bidQuantity)
 
       Then("the trade price should be the limit order bid price")

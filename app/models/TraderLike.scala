@@ -16,11 +16,11 @@ limitations under the License.
 
 package models
 
-import akka.actor.{ActorRef, Actor}
+import akka.actor.{ActorLogging, ActorRef, Actor}
 
 
 trait TraderLike {
-  this: Actor =>
+  this: Actor with ActorLogging =>
 
   val market: ActorRef
 
@@ -35,9 +35,9 @@ trait TraderLike {
 
   def decideBidPrice(): Double
 
-  def decideAskQuantity(): Int
+  def decideAskQuantity(): Double
 
-  def decideBidQuantity(): Int
+  def decideBidQuantity(): Double
 
   def generateNewAskOrder(): AskOrderLike
 

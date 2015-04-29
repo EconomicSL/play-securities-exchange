@@ -2,8 +2,6 @@ package models
 
 import akka.actor.ActorRef
 
-import scala.concurrent.duration.FiniteDuration
-
 
 /** Trait representing an order for a particular security.
   *
@@ -17,13 +15,13 @@ trait OrderLike {
   def buy: Boolean
 
   /** The unique identifier of the security. */
-  def instrument: Security
+  def instrument: AssetLike
 
   /** The quantity being bought or sold. */
-  def quantity: Int
+  def quantity: Double
 
   /** Orders will often need to be split during the matching process. */
-  def split(newQuantity: Int): OrderLike
+  def split(newQuantity: Double): OrderLike
 
   /** String representation of an order. */
   def toString: String

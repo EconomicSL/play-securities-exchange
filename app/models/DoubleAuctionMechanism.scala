@@ -19,8 +19,7 @@ package models
 import akka.actor.ActorRef
 
 
-case class DoubleAuctionMechanism(clearingMechanism: ActorRef,
-                                  instrument: Security) extends AuctionMechanismLike with
+case class DoubleAuctionMechanism(clearingMechanism: ActorRef, instrument: AssetLike) extends AuctionMechanismLike with
   MatchingEngineLike {
 
   val askOrderBook: AskOrderBook = AskOrderBook(instrument)
@@ -136,7 +135,7 @@ case class DoubleAuctionMechanism(clearingMechanism: ActorRef,
     * @param price price at which order is filled.
     * @param quantity quantity involved in the filled order.
     */
-  def generatePartialFill(ask: AskOrderLike, bid: BidOrderLike, price: Double, quantity: Int): Unit = {
+  def generatePartialFill(ask: AskOrderLike, bid: BidOrderLike, price: Double, quantity: Double): Unit = {
     val partialFill = PartialFill(ask.tradingPartyRef, bid.tradingPartyRef, instrument, price, quantity)
     log.info(s",${System.nanoTime()}" + partialFill.toString)
     updateReferencePrice(price)
@@ -150,7 +149,7 @@ case class DoubleAuctionMechanism(clearingMechanism: ActorRef,
     * @param price price at which order is filled.
     * @param quantity quantity involved in the filled order.
     */
-  def generateTotalFill(ask: AskOrderLike, bid: BidOrderLike, price: Double, quantity: Int): Unit = {
+  def generateTotalFill(ask: AskOrderLike, bid: BidOrderLike, price: Double, quantity: Double): Unit = {
     val totalFill = TotalFill(ask.tradingPartyRef, bid.tradingPartyRef, instrument, price, quantity)
     log.info(s",${System.nanoTime()}" + totalFill.toString)
     updateReferencePrice(price)

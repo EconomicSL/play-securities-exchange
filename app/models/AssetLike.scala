@@ -16,21 +16,5 @@ limitations under the License.
 
 package models
 
-import akka.actor.{ActorRef, ActorLogging, Actor}
-
-
-/** Base trait for all AuctionMechanisms */
-trait AuctionMechanismLike extends Actor with
-  ActorLogging {
-
-  /** Security being traded via the auction mechanism. */
-  def instrument: AssetLike
-
-  /** ActorRef for a ClearingMechanismLike actor.
-    *
-    * @note The ClearMechanismLike actor processes the transaction(s) for
-    *       each FillLike instance generated via the AuctionMechanism.
-    */
-  def clearingMechanism: ActorRef
-
-}
+/** Base trait for all Asset classes */
+trait AssetLike

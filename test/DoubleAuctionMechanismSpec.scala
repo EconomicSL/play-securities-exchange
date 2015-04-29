@@ -15,7 +15,7 @@ class DoubleAuctionMechanismSpec extends TestKit(ActorSystem("Securities-Exchang
     system.shutdown()
   }
 
-  val testInstrument = Security("GOOG", 1000000)
+  val testInstrument = Stock("GOOG")
 
   val testClearingMechanism = TestProbe()
 

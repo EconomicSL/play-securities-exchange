@@ -25,14 +25,14 @@ import scala.collection.mutable
   */
 sealed trait OrderBookLike {
 
-  def instrument: Security
+  def instrument: AssetLike
 
   def bestLimitOrder: Option[LimitPriceLike]
 
 }
 
 
-case class AskOrderBook(instrument: Security) extends
+case class AskOrderBook(instrument: AssetLike) extends
   mutable.PriorityQueue[AskOrderLike] with
   OrderBookLike {
 
@@ -48,7 +48,7 @@ case class AskOrderBook(instrument: Security) extends
 }
 
 
-case class BidOrderBook(instrument: Security) extends
+case class BidOrderBook(instrument: AssetLike) extends
   mutable.PriorityQueue[BidOrderLike] with
   OrderBookLike {
 

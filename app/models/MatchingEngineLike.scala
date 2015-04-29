@@ -23,7 +23,7 @@ trait MatchingEngineLike {
 
   def bidOrderBook: BidOrderBook
 
-  def instrument: Security
+  def instrument: AssetLike
 
   def referencePrice: Option[Double]
 

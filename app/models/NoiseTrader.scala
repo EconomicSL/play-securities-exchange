@@ -16,26 +16,24 @@ limitations under the License.
 
 package models
 
-import akka.actor.{ActorRef, Actor}
+import akka.actor.{ActorLogging, ActorRef, Actor}
 import com.typesafe.config.ConfigFactory
 
 import scala.collection.mutable
 import scala.util.Random
 
 
-case class NoiseTrader(securities: mutable.Map[Security, Int],
-                       var cash: Double,
-                       market: ActorRef,
-                       prng: Random) extends Actor with
-  TraderLike with
-  CashHolder with
-  SecuritiesHolder {
+case class NoiseTrader(market: ActorRef,
+                       prng: Random) extends Actor
+  with ActorLogging
+  with TraderLike
+  with AssetsHolderLike {
 
   val conf = ConfigFactory.load("traders.conf")
 
   val maxPrice: Double = conf.getDouble("maxPrice")
   
-  val maxQuantity: Int = conf.getInt("maxQuantity")
+  val maxQuantity: Double = conf.getDouble("maxQuantity")
 
   val askOrderProbability: Double = conf.getDouble("askOrderProbability")
 
@@ -47,17 +45,17 @@ case class NoiseTrader(securities: mutable.Map[Security, Int],
     prng.nextDouble() * maxPrice
   }
 
-  def decideAskQuantity(): Int = {
-    1 + prng.nextInt(maxQuantity)
+  def decideAskQuantity(): Double = {
+    prng.nextDouble() * maxQuantity
   }
 
-  def decideBidQuantity(): Int = {
-    1 + prng.nextInt(maxQuantity)
+  def decideBidQuantity(): Double = {
+    prng.nextDouble() * maxQuantity
   }
 
-  def decideInstrument(): Security = {
-    val idx = prng.nextInt(securities.size)
-    securities.keys.toList(idx)
+  def decideInstrument(): AssetLike = {
+    val idx = prng.nextInt(assets.size)
+    assets.keys.toList(idx)
   }
 
   def generateNewAskOrder(): AskOrderLike = {
@@ -77,7 +75,7 @@ case class NoiseTrader(securities: mutable.Map[Security, Int],
   }
 
   def receive: Receive = {
-    traderLikeBehavior orElse cashHolderBehavior orElse securitiesHolderBehavior
+    traderLikeBehavior orElse assetsHolderBehavior
   }
 
 }

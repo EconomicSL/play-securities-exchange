@@ -25,11 +25,11 @@ sealed trait FillLike {
 
   val bidTradingPartyRef: ActorRef
 
-  val instrument: Security
+  val instrument: AssetLike
 
   val price: Double
 
-  val quantity: Int
+  val quantity: Double
   
 }
 
@@ -43,12 +43,11 @@ sealed trait FillLike {
   */
 case class PartialFill(askTradingPartyRef: ActorRef,
                        bidTradingPartyRef: ActorRef,
-                       instrument: Security,
+                       instrument: AssetLike,
                        price: Double,
-                       quantity: Int) extends FillLike {
+                       quantity: Double) extends FillLike {
 
   require(price > 0, "Price must be strictly positive.")
-
   require(quantity > 0, "Quantity must be strictly positive.")
 
   override def toString: String = {
@@ -67,12 +66,11 @@ case class PartialFill(askTradingPartyRef: ActorRef,
   */
 case class TotalFill(askTradingPartyRef: ActorRef,
                      bidTradingPartyRef: ActorRef,
-                     instrument: Security,
+                     instrument: AssetLike,
                      price: Double,
-                     quantity: Int) extends FillLike {
+                     quantity: Double) extends FillLike {
 
   require(price > 0, "Price must be strictly positive.")
-
   require(quantity > 0, "Quantity must be strictly positive.")
 
   override def toString: String = {
