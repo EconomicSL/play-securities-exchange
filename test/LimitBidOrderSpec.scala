@@ -22,7 +22,7 @@ class LimitBidOrderSpec extends TestKit(ActorSystem("TestSystem")) with
   /** Maximum number of share for testing. */
   val maxQuantity = 1000000
 
-  val testInstrument = Stock("GOOG", maxQuantity)
+  val testInstrument = Stock("GOOG")
 
   feature("LimitBidOrder should be able to split itself.") {
 
@@ -62,7 +62,7 @@ class LimitBidOrderSpec extends TestKit(ActorSystem("TestSystem")) with
 
       Then("that limit ask order should cross with the limit bid order.")
 
-      limitBidOrder.crosses(crossingLimitAskOrder) should be(true)
+      assert(limitBidOrder.crosses(crossingLimitAskOrder))
 
       Given("some limit ask order whose price exceeds that of the limit bid order")
 
@@ -70,9 +70,9 @@ class LimitBidOrderSpec extends TestKit(ActorSystem("TestSystem")) with
       val askQuantity2 = Random.nextInt(maxQuantity)
       val otherLimitAskOrder = LimitAskOrder(testActor, testInstrument, askPrice2, askQuantity2)
 
-      Then("that limit ask order should cross with the limit bid order.")
+      Then("that limit ask order should not cross with the limit bid order.")
 
-      limitBidOrder.crosses(otherLimitAskOrder) should be(false)
+      assert(! limitBidOrder.crosses(otherLimitAskOrder))
 
     }
 

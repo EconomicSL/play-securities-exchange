@@ -29,7 +29,7 @@ class TransactionHandlerSpec extends TestKit(ActorSystem("TransactionHandlerSpec
   }
 
   def generateRandomInstrument(maxQuantity: Int = 10000): Stock = {
-    Stock(Random.nextString(4), generateRandomQuantity(maxQuantity))
+    Stock(Random.nextString(4))
   }
 
   def generateRandomPartialFill(askTradingPartyRef: ActorRef,

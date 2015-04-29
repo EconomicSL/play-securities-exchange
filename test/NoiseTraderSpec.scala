@@ -37,7 +37,7 @@ class NoiseTraderSpec extends TestKit(ActorSystem("NoiseTraderSpec")) with
     val assetHoldings = mutable.Map[AssetLike, Int]()
 
     for (i <- 0 until numberOfAssets) {
-      assetHoldings(Stock(Random.nextString(4), generateRandomQuantity(maxHoldings))) = generateRandomQuantity(maxHoldings)
+      assetHoldings(Stock(Random.nextString(4))) = generateRandomQuantity(maxHoldings)
     }
 
     assetHoldings

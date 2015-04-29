@@ -23,7 +23,7 @@ class AskOrderBookSpec extends TestKit(ActorSystem("AskOrderBookSpec")) with
   /** Maximum number of share for testing. */
   val maxQuantity = 1000000
 
-  val testInstrument = Stock("AAPL", maxQuantity)
+  val testInstrument = Stock("AAPL")
 
   feature("An AskOrderBook should maintain price priority") {
 
