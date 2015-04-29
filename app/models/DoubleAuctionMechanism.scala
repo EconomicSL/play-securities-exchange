@@ -16,11 +16,21 @@ limitations under the License.
 
 package models
 
-import akka.actor.ActorRef
+import akka.actor.{Actor, ActorLogging, Props}
 
 
-case class DoubleAuctionMechanism(clearingMechanism: ActorRef, instrument: AssetLike) extends AuctionMechanismLike with
-  MatchingEngineLike {
+object DoubleAuctionMechanism {
+
+  def props(instrument: AssetLike): Props = {
+    Props(DoubleAuctionMechanism(instrument))
+  }
+
+}
+
+
+case class DoubleAuctionMechanism(instrument: AssetLike) extends Actor
+  with ActorLogging
+  with MatchingEngineLike {
 
   val askOrderBook: AskOrderBook = AskOrderBook(instrument)
 
@@ -139,7 +149,7 @@ case class DoubleAuctionMechanism(clearingMechanism: ActorRef, instrument: Asset
     val partialFill = PartialFill(ask.tradingPartyRef, bid.tradingPartyRef, instrument, price, quantity)
     log.info(s",${System.nanoTime()}" + partialFill.toString)
     updateReferencePrice(price)
-    clearingMechanism ! partialFill
+    context.parent ! partialFill
   }
 
   /** Generate a totally filled order.
@@ -153,7 +163,7 @@ case class DoubleAuctionMechanism(clearingMechanism: ActorRef, instrument: Asset
     val totalFill = TotalFill(ask.tradingPartyRef, bid.tradingPartyRef, instrument, price, quantity)
     log.info(s",${System.nanoTime()}" + totalFill.toString)
     updateReferencePrice(price)
-    clearingMechanism ! totalFill
+    context.parent ! totalFill
   }
 
   /** Update the reference price for the security. */
