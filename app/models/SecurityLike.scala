@@ -24,7 +24,11 @@ package models
   * represented by an option. A SecurityLike is a fungible, negotiable financial
   * instrument that represents some type of financial value.
   */
-sealed trait SecurityLike extends AssetLike
+sealed trait SecurityLike extends AssetLike {
+
+  def symbol: String
+
+}
 
 
 /** Represents an ownership position in a publicly-traded corporation.

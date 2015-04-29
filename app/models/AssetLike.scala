@@ -17,8 +17,4 @@ limitations under the License.
 package models
 
 /** Base trait for all Asset classes */
-trait AssetLike {
-
-  def symbol: String
-
-}
+trait AssetLike

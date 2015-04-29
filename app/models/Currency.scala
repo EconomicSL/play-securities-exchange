@@ -17,4 +17,4 @@ limitations under the License.
 package models
 
 
-case class Currency(symbol: String) extends AssetLike
+object Currency extends AssetLike

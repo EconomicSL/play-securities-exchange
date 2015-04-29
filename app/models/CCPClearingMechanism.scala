@@ -18,8 +18,6 @@ package models
 
 import akka.actor.{ActorRef, Props}
 
-import scala.collection.mutable
-
 
 /** Central counter party (CCP) clearing mechanism.
   *
@@ -29,9 +27,8 @@ import scala.collection.mutable
   * a counter-party to every transaction, the CCP assumes all counter-party
   * risk.
   */
-class CCPClearingMechanism extends ClearingMechanismLike with
-  CashHolderLike with
-  AssetsHolderLike {
+class CCPClearingMechanism extends ClearingMechanismLike
+  with AssetsHolderLike {
 
   /** Central counterparty For now assume that central counter party has "deep pockets". */
   var cash: Double = Double.PositiveInfinity
@@ -67,7 +64,7 @@ class CCPClearingMechanism extends ClearingMechanismLike with
   }
 
   def receive: Receive = {
-    clearingMechanismBehavior orElse cashHolderBehavior orElse assetsHolderBehavior
+    clearingMechanismBehavior orElse assetsHolderBehavior
   }
   
 }

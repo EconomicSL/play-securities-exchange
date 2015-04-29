@@ -23,12 +23,10 @@ import scala.collection.mutable
 import scala.util.Random
 
 
-case class NoiseTrader(var cash: Double,
-                       market: ActorRef,
+case class NoiseTrader(market: ActorRef,
                        prng: Random) extends Actor
   with ActorLogging
   with TraderLike
-  with CashHolderLike
   with AssetsHolderLike {
 
   val conf = ConfigFactory.load("traders.conf")
@@ -77,7 +75,7 @@ case class NoiseTrader(var cash: Double,
   }
 
   def receive: Receive = {
-    traderLikeBehavior orElse cashHolderBehavior orElse assetsHolderBehavior
+    traderLikeBehavior orElse assetsHolderBehavior
   }
 
 }

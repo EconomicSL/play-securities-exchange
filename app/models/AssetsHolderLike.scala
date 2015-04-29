@@ -27,9 +27,14 @@ trait AssetsHolderLike {
   /* For now assume that AssetsHolderLike can take negative asset positions. */
   val assets: mutable.Map[AssetLike, Double] = mutable.Map[AssetLike, Double]().withDefaultValue(0.0)
 
-  /* Decrement actor's securities holdings. */
-  def deccumulate(asset: AssetLike, quantity: Double): Unit = {
-    assets(asset) -= quantity
+  /* Increments an actor's cash holdings. */
+  def hoard(amount: Double): Unit = {
+    assets(Currency) += amount
+  }
+
+  /* Decrements an actor's cash holdings. */
+  def dishoard(amount: Double): Unit = {
+    assets(Currency) -= amount
   }
 
   /* Increment actor's securities holdings. */
@@ -37,7 +42,17 @@ trait AssetsHolderLike {
     assets(asset) += quantity
   }
 
+  /* Decrement actor's securities holdings. */
+  def deccumulate(asset: AssetLike, quantity: Double): Unit = {
+    assets(asset) -= quantity
+  }
+
   def assetsHolderBehavior: Receive = {
+    case Payment(amount) =>
+      hoard(amount)
+    case RequestPayment(amount) =>
+      dishoard(amount)
+      sender() ! Payment(amount)
     case RequestAssets(asset, quantity) =>
       deccumulate(asset, quantity)
       sender() ! Assets(asset, quantity)
@@ -61,3 +76,16 @@ case class Assets(instrument: AssetLike, quantity: Double) {
 
 }
 
+
+case class Payment(amount: Double) {
+
+  require(amount > 0.0)
+
+}
+
+
+case class RequestPayment(amount: Double) {
+
+  require(amount > 0.0)
+
+}

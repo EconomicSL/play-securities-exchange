@@ -18,13 +18,9 @@ class NoiseTraderSpec extends TestKit(ActorSystem("NoiseTraderSpec")) with
     system.shutdown()
   }
 
-  def generateNoiseTrader(market: ActorRef, maxCash: Double = 1e6): NoiseTrader = {
-
-    val cash = generateRandomCashHoldings(maxCash)
+  def generateNoiseTrader(market: ActorRef): NoiseTrader = {
     val prng = new Random()
-
-    NoiseTrader(cash, market, prng)
-
+    NoiseTrader(market, prng)
   }
   
   def generateRandomAmount(maxAmount: Double = 1e6): Double = {
@@ -32,9 +28,7 @@ class NoiseTraderSpec extends TestKit(ActorSystem("NoiseTraderSpec")) with
   }
 
   def generateRandomAsset(symbol: String, maxQuantity: Double = 1e6): Assets = {
-
     Assets(Stock(symbol), generateRandomQuantity(maxQuantity))
-
   }
 
   def generateRandomCashHoldings(maxCash: Double = 1e6): Double = {
@@ -175,7 +169,7 @@ class NoiseTraderSpec extends TestKit(ActorSystem("NoiseTraderSpec")) with
       val noiseTraderRef = TestActorRef(generateNoiseTrader(market.ref))
       val noiseTrader =  noiseTraderRef.underlyingActor
 
-      val initialCashHoldings = noiseTrader.cash
+      val initialCashHoldings = noiseTrader.assets(Currency)
 
       When("NoiseTrader receives RequestPayment")
 
@@ -184,7 +178,7 @@ class NoiseTraderSpec extends TestKit(ActorSystem("NoiseTraderSpec")) with
       
       Then("NoiseTrader decrements its cash holdings and")
 
-      noiseTrader.cash should be (initialCashHoldings - paymentRequest.amount)
+      noiseTrader.assets(Currency) should be (initialCashHoldings - paymentRequest.amount)
 
       Then("NoiseTrader sends Payment.")
 
@@ -226,7 +220,7 @@ class NoiseTraderSpec extends TestKit(ActorSystem("NoiseTraderSpec")) with
       val noiseTraderRef = TestActorRef(generateNoiseTrader(market.ref))
       val noiseTrader =  noiseTraderRef.underlyingActor
 
-      val initialCashHoldings = noiseTrader.cash
+      val initialCashHoldings = noiseTrader.assets(Currency)
 
       When("NoiseTrader receives Payment")
 
@@ -235,7 +229,7 @@ class NoiseTraderSpec extends TestKit(ActorSystem("NoiseTraderSpec")) with
 
       Then("NoiseTrader increments its cash holdings.")
 
-      noiseTrader.cash should be (initialCashHoldings + payment.amount)
+      noiseTrader.assets(Currency) should be (initialCashHoldings + payment.amount)
 
     }
 
