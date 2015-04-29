@@ -16,9 +16,5 @@ limitations under the License.
 
 package models
 
-/** Base trait for all Asset classes */
-trait AssetLike {
 
-  def symbol: String
-
-}
+case class Currency(symbol: String) extends AssetLike

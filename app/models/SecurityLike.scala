@@ -30,7 +30,6 @@ sealed trait SecurityLike extends AssetLike
 /** Represents an ownership position in a publicly-traded corporation.
   *
   * @param symbol Stock ticker symbol.
-  * @param numberSharesOutstanding Total number of available shares.
   */
-case class Stock(symbol: String, numberSharesOutstanding: Int) extends SecurityLike
+case class Stock(symbol: String) extends SecurityLike
 

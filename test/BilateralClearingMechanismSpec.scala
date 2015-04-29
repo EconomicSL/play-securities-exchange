@@ -51,7 +51,7 @@ class BilateralClearingMechanismSpec extends TestKit(ActorSystem("NoiseTraderSpe
 
   feature("BilateralClearingMechanism should process transactions.") {
 
-    val testInstrument = Stock("APPL", 1000000)
+    val testInstrument = Stock("APPL")
     val clearingMechanism = TestActorRef(Props[BilateralClearingMechanism])
 
     scenario("BilateralClearingMechanism receives a PartialFill.") {

@@ -52,7 +52,7 @@ class CCPClearingMechanismSpec extends TestKit(ActorSystem("CCPClearingMechanism
 
   feature("CCPClearingMechanism should process transactions.") {
 
-    val testInstrument = Stock("APPL", 1000000)
+    val testInstrument = Stock("APPL")
 
     val clearingMechanismRef = TestActorRef(new CCPClearingMechanism)
     val clearingMechanism = clearingMechanismRef.underlyingActor
