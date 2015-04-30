@@ -24,7 +24,7 @@ trait AuctionMechanismProvider {
   this: Actor with ActorLogging =>
 
   private val conf = ConfigFactory.load("markets.conf")
-  private val auctionMechanismClass = Class.forName(conf.getString("auction-mechanism"))
+  private val auctionMechanismClass = Class.forName(conf.getString("securities-market.auction-mechanism"))
 
   val auctionMechanism: ActorRef = context.actorOf(Props(auctionMechanismClass), "auction-mechanism")
 

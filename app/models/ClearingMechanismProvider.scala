@@ -24,7 +24,7 @@ trait ClearingMechanismProvider {
   this: Actor with ActorLogging =>
 
   private val conf = ConfigFactory.load("markets.conf")
-  private val clearingMechanismClass = Class.forName(conf.getString("clearing-mechanism"))
+  private val clearingMechanismClass = Class.forName(conf.getString("securities-market.clearing-mechanism"))
 
   val clearingMechanism: ActorRef = context.actorOf(Props(clearingMechanismClass), "clearing-mechanism")
 
