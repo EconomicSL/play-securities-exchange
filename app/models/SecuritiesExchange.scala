@@ -16,42 +16,29 @@ limitations under the License.
 
 package models
 
-import akka.actor.{ActorLogging, Actor, ActorRef, Props}
-import akka.agent.Agent
+import akka.actor.Props
 import akka.routing._
-import scala.collection.{immutable, mutable}
+import scala.collection.immutable
 
 
-/** Represents a security exchange.
+/** Represents a securities exchange.
   *
-  * A security Exchange receives various types of ask and bid orders from
+  * A SecurityExchange receives various types of ask and bid orders from
   * traders and efficiently routes them to the correct market for further
-  * processing.
-  *
+  * processing. If SecuritiesExchange receives an order for an instrument that
+  * is not traded on any of its markets, then it rejects the order and informs
+  * the trader who sent it.
   */
 class SecuritiesExchange extends ExchangeLike
   with SecuritiesProvider {
 
   /** Create a double auction market actor for each security in tickers. */
-  val markets = securities map {
-    case security => (security, context.actorOf(Props[DoubleAuctionMechanism](
-      new DoubleAuctionMechanism(clearingMechanism, security)), security.name))
+  securities.foreach {
+    security => context.actorOf(Props(classOf[SecuritiesMarket], security), security.symbol)
   }
 
   /** Exchange has a custom router for incoming orders. */
-  val orderRouter = Router(OrderRoutingLogic)
-
-  /** Exchange acts as a router for incoming orders from traders.
-    *
-    * Exchange routes all valid orders to the appropriate market for further
-    * processing; if exchange receives an invalid order, then that order is
-    * rejected and returned to the trader who sent it.
-    *
-    */
-  def receive: Receive = {
-    case order: OrderLike if ! markets.contains(order.instrument) => sender() ! OrderRejected
-    case order: OrderLike => sender() ! OrderAccepted; orderRouter.route(order, sender()); log.info(s",${System.nanoTime()}" + order.toString)
-  }
+  val router = Router(OrderRoutingLogic)
 
   /** Order routing logic for the Exchange. */
   object OrderRoutingLogic extends RoutingLogic {
@@ -59,13 +46,25 @@ class SecuritiesExchange extends ExchangeLike
     /** Route order for a security to the market on which security is traded. */
     def select(message: Any, routees: immutable.IndexedSeq[Routee]): Routee = {
       message match {
-        case order: OrderLike => ActorRefRoutee(markets(order.instrument))
+        case order: OrderLike => ActorRefRoutee(context.child(order.instrument.symbol).get)
       }
     }
 
   }
 
+  def receive: Receive = {
+    case order: OrderLike => context.child(order.instrument.symbol) match {
+      case Some(market) =>  // exchange has a market for the instrument
+        router.route(order, sender())
+        sender() ! OrderAccepted
+        log.info(s",${System.nanoTime()}" + order.toString)
+      case None =>  // exchange does not have a market for the instrument
+        sender() ! OrderRejected
+    }
+  }
+
 }
+
 
 case object OrderAccepted
 
