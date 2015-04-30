@@ -1,4 +1,4 @@
-import akka.actor.ActorSystem
+import akka.actor.{Props, ActorSystem}
 import akka.testkit.{TestProbe, TestKit, TestActorRef}
 import models._
 import org.scalatest.{FeatureSpecLike, GivenWhenThen, Matchers}
@@ -6,7 +6,8 @@ import org.scalatest.{FeatureSpecLike, GivenWhenThen, Matchers}
 import scala.util.Random
 
 
-class SecuritiesMarketSpec extends TestKit(ActorSystem("Securities-Market-Spec"))
+class SecuritiesExchangeSpec extends TestKit(ActorSystem("Securities-Exchange-Spec"))
+  with SecuritiesProvider
   with FeatureSpecLike
   with GivenWhenThen
   with Matchers {
@@ -15,7 +16,10 @@ class SecuritiesMarketSpec extends TestKit(ActorSystem("Securities-Market-Spec")
     system.shutdown()
   }
 
-  val testInstrument = Stock("GOOG")
+  val testInstrument: SecurityLike = {
+    val idx = Random.nextInt(securities.size)
+    securities(idx)
+  }
 
   def generateRandomPrice(maxPrice: Double = 1000.0): Double = {
     Random.nextDouble() * maxPrice
@@ -25,12 +29,12 @@ class SecuritiesMarketSpec extends TestKit(ActorSystem("Securities-Market-Spec")
     Random.nextInt(maxQuantity)
   }
 
-  feature("The SecuritiesMarket should be able to process orders.") {
+  feature("The SecuritiesExchange should be able to process orders.") {
 
     val seller = TestProbe()
     val buyer = TestProbe()
 
-    val securitiesMarket = TestActorRef(new SecuritiesMarket(testInstrument))
+    val securitiesExchange = TestActorRef(new SecuritiesExchange)
 
     scenario("An incoming limit order bid crosses with the top limit order ask") {
 
@@ -39,13 +43,13 @@ class SecuritiesMarketSpec extends TestKit(ActorSystem("Securities-Market-Spec")
       val askPrice = generateRandomPrice()
       val askQuantity = generateRandomQuantity()
       val ask1 = LimitAskOrder(seller.ref, testInstrument, askPrice, askQuantity)
-      securitiesMarket ! ask1
+      securitiesExchange ! ask1
 
       When("a crossing limit order bid for the same quantity of shares is received")
 
       val bidPrice = (1 + Random.nextDouble()) * askPrice
       val bid1 = LimitBidOrder(buyer.ref, testInstrument, bidPrice, askQuantity)
-      securitiesMarket ! bid1
+      securitiesExchange ! bid1
 
       Then("the buyer should receive securities and the seller should receive payment.")
 
