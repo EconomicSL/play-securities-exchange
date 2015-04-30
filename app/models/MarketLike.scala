@@ -28,6 +28,9 @@ import akka.actor.{ActorRef, ActorLogging, Actor}
 trait MarketLike extends Actor
   with ActorLogging {
 
+  /** Security traded on the market. */
+  def instrument: SecurityLike
+
   /** Auction mechanism used to generate transaction prices and quantities. */
   def auctionMechanism: ActorRef
 

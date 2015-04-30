@@ -17,7 +17,7 @@ limitations under the License.
 package models
 
 
-class SecuritiesMarket extends MarketLike
+case class SecuritiesMarket(instrument: SecurityLike) extends MarketLike
   with AuctionMechanismProvider
   with ClearingMechanismProvider {
 

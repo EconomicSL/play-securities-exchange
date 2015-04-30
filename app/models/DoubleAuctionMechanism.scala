@@ -41,9 +41,9 @@ case class DoubleAuctionMechanism(instrument: SecurityLike) extends Actor
   /** Receive a bid (i.e. buy) or ask (i.e., sell) order for an instrument. */
   def receive = {
     case askOrder: AskOrderLike =>
-      sender() ! OrderReceived; tryFindMatchingBid(askOrder)
+      tryFindMatchingBid(askOrder)
     case bidOrder: BidOrderLike =>
-      sender() ! OrderReceived; tryFindMatchingAsk(bidOrder)
+      tryFindMatchingAsk(bidOrder)
   }
 
   /** Attempt to match incoming Bid orders.
@@ -147,7 +147,6 @@ case class DoubleAuctionMechanism(instrument: SecurityLike) extends Actor
     */
   def generatePartialFill(ask: AskOrderLike, bid: BidOrderLike, price: Double, quantity: Double): Unit = {
     val partialFill = PartialFill(ask.tradingPartyRef, bid.tradingPartyRef, instrument, price, quantity)
-    log.info(s",${System.nanoTime()}" + partialFill.toString)
     updateReferencePrice(price)
     context.parent ! partialFill
   }
@@ -161,7 +160,6 @@ case class DoubleAuctionMechanism(instrument: SecurityLike) extends Actor
     */
   def generateTotalFill(ask: AskOrderLike, bid: BidOrderLike, price: Double, quantity: Double): Unit = {
     val totalFill = TotalFill(ask.tradingPartyRef, bid.tradingPartyRef, instrument, price, quantity)
-    log.info(s",${System.nanoTime()}" + totalFill.toString)
     updateReferencePrice(price)
     context.parent ! totalFill
   }
@@ -172,8 +170,6 @@ case class DoubleAuctionMechanism(instrument: SecurityLike) extends Actor
   }
 
 }
-
-case object OrderReceived
 
 
 

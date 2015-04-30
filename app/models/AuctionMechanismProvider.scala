@@ -21,11 +21,11 @@ import com.typesafe.config.ConfigFactory
 
 
 trait AuctionMechanismProvider {
-  this: Actor with ActorLogging =>
+  this: MarketLike =>
 
   private val conf = ConfigFactory.load("markets.conf")
   private val auctionMechanismClass = Class.forName(conf.getString("securities-market.auction-mechanism"))
 
-  val auctionMechanism: ActorRef = context.actorOf(Props(auctionMechanismClass), "auction-mechanism")
+  val auctionMechanism: ActorRef = context.actorOf(Props(auctionMechanismClass, instrument), "auction-mechanism")
 
 }

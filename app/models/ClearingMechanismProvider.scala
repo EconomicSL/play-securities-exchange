@@ -21,7 +21,7 @@ import com.typesafe.config.ConfigFactory
 
 
 trait ClearingMechanismProvider {
-  this: Actor with ActorLogging =>
+  this: MarketLike =>
 
   private val conf = ConfigFactory.load("markets.conf")
   private val clearingMechanismClass = Class.forName(conf.getString("securities-market.clearing-mechanism"))
