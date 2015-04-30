@@ -24,6 +24,7 @@ class BilateralClearingMechanism extends ClearingMechanismLike {
 
   val clearingMechanismBehavior: Receive = {
     case fill: FillLike =>
+      log.info(s",${System.nanoTime()}" + fill.toString)
       val transactionHandler = context.actorOf(Props[TransactionHandler])
       transactionHandler ! fill
   }
