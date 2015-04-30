@@ -18,6 +18,7 @@ package models
 
 import com.typesafe.config.ConfigFactory
 
+import scala.collection.JavaConverters._
 import scala.util.Random
 
 
@@ -26,11 +27,10 @@ trait SecuritiesProvider extends {
 
   private val securitiesConf = ConfigFactory.load("securities.conf")
 
-  val securities: List[Security] = {
-    val prng = new Random(securitiesConf.getInt("securities.seed"))
-    val maxSharesOutstanding = securitiesConf.getInt("securities.maxSharesOutstanding")
-    val symbols = securitiesConf.getStringList("securities.symbols")
-    for (symbol <- symbols) yield Security(symbol, prng.nextInt(maxSharesOutstanding))
+  val securities: List[SecurityLike] = {
+    val prng = new Random(securitiesConf.getInt("seed"))
+    val symbols = securitiesConf.getStringList("symbols").asScala.toList
+    for (symbol <- symbols) yield Stock(symbol)
   }
 
 }
