@@ -3,10 +3,17 @@
 [![Build Status](https://travis-ci.org/davidrpugh/play-securities-exchange.svg?branch=master)](https://travis-ci.org/davidrpugh/play-securities-exchange)
 [![Coverage Status](https://coveralls.io/repos/davidrpugh/play-securities-exchange/badge.svg?branch=master)](https://coveralls.io/r/davidrpugh/play-securities-exchange?branch=master)
 
-A large-scale agent-based simulation model of a securities exchange.
+A large-scale agent-based simulation model of a securities exchange built using the [Play framework](https://www.playframework.com/)
+
+## Getting started with the Play framework
+
+While the Play framework requires JDK 6+, I would recommend that you go ahead and install JDK 8 direct from [Oracle](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html). Once your JDK has been installed, then you can download and install Play. Mac, Linux, and Windows users can [download](https://www.playframework.com/download) Play (and its dependencies) direct from the website.   
+Additionally, Mac users can install the Play framework (and dependencies) via Homebrew (assuming of course that you have installed [Homebrew](http://brew.sh/)) using the following command in a terminal:
+
+    $ brew install activator
 
 ## Code coverage
-The project uses the [sbt-scoverage](https://github.com/scoverage/sbt-scoverage) plugin to generate test coverage statistics. To run the tests with coverage enabled simply run the `sbt clean coverage test` command from the project root directory:
+The project uses the [sbt-scoverage](https://github.com/scoverage/sbt-scoverage) plugin to generate test coverage statistics. To run the tests with coverage enabled simply run the following command in a terminal from the project root directory:
 
     $ sbt clean coverage test
 
