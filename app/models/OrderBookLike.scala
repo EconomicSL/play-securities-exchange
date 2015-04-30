@@ -32,7 +32,7 @@ sealed trait OrderBookLike {
 }
 
 
-case class AskOrderBook(instrument: AssetLike) extends
+case class AskOrderBook(instrument: SecurityLike) extends
   mutable.PriorityQueue[AskOrderLike] with
   OrderBookLike {
 
@@ -48,7 +48,7 @@ case class AskOrderBook(instrument: AssetLike) extends
 }
 
 
-case class BidOrderBook(instrument: AssetLike) extends
+case class BidOrderBook(instrument: SecurityLike) extends
   mutable.PriorityQueue[BidOrderLike] with
   OrderBookLike {
 

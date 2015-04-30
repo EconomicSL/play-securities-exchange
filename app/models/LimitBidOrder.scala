@@ -30,7 +30,7 @@ import akka.actor.ActorRef
   * @param quantity Desired quantity of the security.
   */
 case class LimitBidOrder(tradingPartyRef: ActorRef,
-                         instrument: AssetLike,
+                         instrument: SecurityLike,
                          limitPrice: Double,
                          quantity: Double) extends
   BidOrderLike with
