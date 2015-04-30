@@ -21,14 +21,14 @@ import akka.actor.{Actor, ActorLogging, Props}
 
 object DoubleAuctionMechanism {
 
-  def props(instrument: AssetLike): Props = {
+  def props(instrument: SecurityLike): Props = {
     Props(DoubleAuctionMechanism(instrument))
   }
 
 }
 
 
-case class DoubleAuctionMechanism(instrument: AssetLike) extends Actor
+case class DoubleAuctionMechanism(instrument: SecurityLike) extends Actor
   with ActorLogging
   with MatchingEngineLike {
 
