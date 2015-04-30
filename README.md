@@ -7,14 +7,13 @@ A large-scale agent-based simulation model of a securities exchange built using 
 
 ## Getting started with the Play framework
 
-While the Play framework requires JDK 6+. I would recommend install JDK 8 direct from [Oracle](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html).
-Mac, Linux, and Windows users can [download](https://www.playframework.com/download) Play (and its dependencies).   
-Mac users can install the Play framework (and dependencies) via Homebrew. Assuming that you have installed Homebrew, then download and install using the following command:
+While the Play framework requires JDK 6+, I would recommend that you go ahead and install JDK 8 direct from [Oracle](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html). Once your JDK has been installed, then you can download and install Play. Mac, Linux, and Windows users can [download](https://www.playframework.com/download) Play (and its dependencies) direct from the website.   
+Additionally, Mac users can install the Play framework (and dependencies) via Homebrew (assuming of course that you have installed [Homebrew](http://brew.sh/)) using the following command in a terminal:
 
     $ brew install activator
 
 ## Code coverage
-The project uses the [sbt-scoverage](https://github.com/scoverage/sbt-scoverage) plugin to generate test coverage statistics. To run the tests with coverage enabled simply run the following command from the project root directory:
+The project uses the [sbt-scoverage](https://github.com/scoverage/sbt-scoverage) plugin to generate test coverage statistics. To run the tests with coverage enabled simply run the following command in a terminal from the project root directory:
 
     $ sbt clean coverage test
 
