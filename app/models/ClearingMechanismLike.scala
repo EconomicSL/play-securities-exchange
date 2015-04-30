@@ -19,8 +19,8 @@ package models
 import akka.actor.{ActorLogging, Actor}
 
 
-trait ClearingMechanismLike extends Actor with
-  ActorLogging {
+trait ClearingMechanismLike extends Actor
+  with ActorLogging {
 
   def clearingMechanismBehavior: Receive
 

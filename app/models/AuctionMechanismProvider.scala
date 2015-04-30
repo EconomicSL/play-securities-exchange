@@ -16,21 +16,16 @@ limitations under the License.
 
 package models
 
-import akka.actor.Props
+import akka.actor.{Props, ActorRef, Actor, ActorLogging}
+import com.typesafe.config.ConfigFactory
 
 
-/** Bilateral clearing mechanism. */
-class BilateralClearingMechanism extends ClearingMechanismLike {
+trait AuctionMechanismProvider {
+  this: MarketLike =>
 
-  val clearingMechanismBehavior: Receive = {
-    case fill: FillLike =>
-      log.info(s",${System.nanoTime()}" + fill.toString)
-      val transactionHandler = context.actorOf(Props[TransactionHandler])
-      transactionHandler ! fill
-  }
+  private val conf = ConfigFactory.load("markets.conf")
+  private val auctionMechanismClass = Class.forName(conf.getString("securities-market.auction-mechanism"))
 
-  def receive: Receive = {
-    clearingMechanismBehavior
-  }
+  val auctionMechanism: ActorRef = context.actorOf(Props(auctionMechanismClass, instrument), "auction-mechanism")
 
 }

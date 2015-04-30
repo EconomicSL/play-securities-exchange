@@ -19,7 +19,6 @@ package models
 import akka.actor.{ActorLogging, ActorRef, Actor}
 import com.typesafe.config.ConfigFactory
 
-import scala.collection.mutable
 import scala.util.Random
 
 
@@ -53,9 +52,13 @@ case class NoiseTrader(market: ActorRef,
     prng.nextDouble() * maxQuantity
   }
 
-  def decideInstrument(): AssetLike = {
-    val idx = prng.nextInt(assets.size)
-    assets.keys.toList(idx)
+  def decideInstrument(): SecurityLike = {
+    // find all securities
+    val securities = assets.filterKeys(_.isInstanceOf[SecurityLike])
+
+    // pick a security at random
+    val idx = prng.nextInt(securities.size)
+    securities.keys.toList(idx).asInstanceOf[SecurityLike]
   }
 
   def generateNewAskOrder(): AskOrderLike = {

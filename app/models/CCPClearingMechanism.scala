@@ -19,19 +19,16 @@ package models
 import akka.actor.{ActorRef, Props}
 
 
-/** Central counter party (CCP) clearing mechanism.
+/** Central counterparty (CCP) clearing mechanism.
   *
   * @note The key difference between CCP clearing and bilateral clearing is that
-  * CCP inserts itself as the counter-party to both the ask and the bid
+  * CCP inserts itself as the counterparty to both the ask and the bid
   * trading parties before processing the final transaction. By acting as
-  * a counter-party to every transaction, the CCP assumes all counter-party
-  * risk.
+  * a counterparty on every transaction the CCP effectively assumes all
+  * counterparty risk.
   */
 class CCPClearingMechanism extends ClearingMechanismLike
   with AssetsHolderLike {
-
-  /** Central counterparty For now assume that central counter party has "deep pockets". */
-  var cash: Double = Double.PositiveInfinity
 
   /* BilateralClearingMechanism can be used to process novated fills. */
   val bilateralClearingMechanism: ActorRef = context.actorOf(Props[BilateralClearingMechanism])

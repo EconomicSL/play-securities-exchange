@@ -16,21 +16,21 @@ limitations under the License.
 
 package models
 
-import akka.actor.Props
+import com.typesafe.config.ConfigFactory
+
+import scala.collection.JavaConverters._
+import scala.util.Random
 
 
-/** Bilateral clearing mechanism. */
-class BilateralClearingMechanism extends ClearingMechanismLike {
+/** Create securities given information in configuration file. */
+trait SecuritiesProvider extends {
 
-  val clearingMechanismBehavior: Receive = {
-    case fill: FillLike =>
-      log.info(s",${System.nanoTime()}" + fill.toString)
-      val transactionHandler = context.actorOf(Props[TransactionHandler])
-      transactionHandler ! fill
-  }
+  private val securitiesConf = ConfigFactory.load("securities.conf")
 
-  def receive: Receive = {
-    clearingMechanismBehavior
+  val securities: List[SecurityLike] = {
+    val prng = new Random(securitiesConf.getInt("seed"))
+    val symbols = securitiesConf.getStringList("symbols").asScala.toList
+    for (symbol <- symbols) yield Stock(symbol)
   }
 
 }

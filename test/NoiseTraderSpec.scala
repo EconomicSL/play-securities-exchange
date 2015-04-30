@@ -149,9 +149,9 @@ class NoiseTraderSpec extends TestKit(ActorSystem("NoiseTraderSpec")) with
       val assets = generateRandomAsset("GOOG")
       noiseTraderRef ! assets
 
-      When("A NoiseTrader receives an OrderReceived message")
+      When("A NoiseTrader receives an OrderAccepted message")
 
-      noiseTraderRef ! OrderReceived
+      noiseTraderRef ! OrderAccepted
 
       Then("the NoiseTrader should send a new order to the market.")
 

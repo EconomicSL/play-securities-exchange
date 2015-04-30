@@ -27,7 +27,7 @@ trait TraderLike {
   val traderLikeBehavior: Receive = {
     case StartTrading =>
       market ! generateNewOrder()
-    case OrderReceived =>
+    case OrderAccepted =>
       market ! generateNewOrder()
   }
 

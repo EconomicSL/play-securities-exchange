@@ -15,7 +15,7 @@ trait OrderLike {
   def buy: Boolean
 
   /** The unique identifier of the security. */
-  def instrument: AssetLike
+  def instrument: SecurityLike
 
   /** The quantity being bought or sold. */
   def quantity: Double

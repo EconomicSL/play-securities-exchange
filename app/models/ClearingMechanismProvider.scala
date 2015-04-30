@@ -16,21 +16,16 @@ limitations under the License.
 
 package models
 
-import akka.actor.{ActorRef, ActorLogging, Actor}
+import akka.actor.{Props, ActorRef, Actor, ActorLogging}
+import com.typesafe.config.ConfigFactory
 
 
-/** Base trait for all AuctionMechanisms */
-trait AuctionMechanismLike extends Actor with
-  ActorLogging {
+trait ClearingMechanismProvider {
+  this: MarketLike =>
 
-  /** Security being traded via the auction mechanism. */
-  def instrument: AssetLike
+  private val conf = ConfigFactory.load("markets.conf")
+  private val clearingMechanismClass = Class.forName(conf.getString("securities-market.clearing-mechanism"))
 
-  /** ActorRef for a ClearingMechanismLike actor.
-    *
-    * @note The ClearMechanismLike actor processes the transaction(s) for
-    *       each FillLike instance generated via the AuctionMechanism.
-    */
-  def clearingMechanism: ActorRef
+  val clearingMechanism: ActorRef = context.actorOf(Props(clearingMechanismClass), "clearing-mechanism")
 
 }
