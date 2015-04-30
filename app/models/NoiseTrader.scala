@@ -19,7 +19,6 @@ package models
 import akka.actor.{ActorLogging, ActorRef, Actor}
 import com.typesafe.config.ConfigFactory
 
-import scala.collection.mutable
 import scala.util.Random
 
 
