@@ -66,7 +66,7 @@ class CCPClearingMechanismSpec extends TestKit(ActorSystem("CCPClearingMechanism
 
       // store initial holdings of cash and securities
       val clearingMechanismInitialSecurities = clearingMechanism.assets(testInstrument)
-      val clearingMechanismInitialCash = clearingMechanism.cash
+      val clearingMechanismInitialCash = clearingMechanism.assets(Currency)
 
       When("CCPClearingMechanism receives a PartialFill")
 
@@ -97,7 +97,7 @@ class CCPClearingMechanismSpec extends TestKit(ActorSystem("CCPClearingMechanism
 
       Then("CCPClearingMechanism cash holdings should remain unchanged.")
 
-      clearingMechanism.cash should be(clearingMechanismInitialCash)
+      clearingMechanism.assets(Currency) should be(clearingMechanismInitialCash)
 
     }
 
@@ -107,7 +107,7 @@ class CCPClearingMechanismSpec extends TestKit(ActorSystem("CCPClearingMechanism
 
       // store initial holdings of cash and securities
       val clearingMechanismInitialSecurities = clearingMechanism.assets(testInstrument)
-      val clearingMechanismInitialCash = clearingMechanism.cash
+      val clearingMechanismInitialCash = clearingMechanism.assets(Currency)
 
       When("CCPClearingMechanism receives a PartialFill")
 
@@ -138,7 +138,7 @@ class CCPClearingMechanismSpec extends TestKit(ActorSystem("CCPClearingMechanism
 
       Then("CCPClearingMechanism cash holdings should remain unchanged.")
 
-      clearingMechanism.cash should be(clearingMechanismInitialCash)
+      clearingMechanism.assets(Currency) should be(clearingMechanismInitialCash)
 
     }
 
