@@ -61,19 +61,24 @@ case class NoiseTrader(market: ActorRef,
     securities.keys.toList(idx).asInstanceOf[SecurityLike]
   }
 
-  def generateNewAskOrder(): AskOrderLike = {
-    LimitAskOrder(self, decideInstrument(), decideAskPrice(), decideAskQuantity())
+  def generateNewAskOrder(instrument: SecurityLike): AskOrderLike = {
+    LimitAskOrder(self, instrument, decideAskPrice(), decideAskQuantity())
   }
 
-  def generateNewBidOrder(): BidOrderLike = {
+  def generateNewBidOrder(instrument: SecurityLike): BidOrderLike = {
     LimitBidOrder(self, decideInstrument(), decideBidPrice(), decideBidQuantity())
   }
 
   def generateNewOrder(): OrderLike = {
+
+    // make investment decision
+    val instrument = decideInstrument()
+
+    // buy or sell?
     if (prng.nextDouble() < askOrderProbability) {
-      generateNewAskOrder()
+      generateNewAskOrder(instrument)
     } else {
-      generateNewBidOrder()
+      generateNewBidOrder(instrument)
     }
   }
 
