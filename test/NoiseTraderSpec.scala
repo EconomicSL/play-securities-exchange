@@ -49,8 +49,10 @@ class NoiseTraderSpec extends TestKit(ActorSystem("NoiseTraderSpec")) with
     val market = TestProbe()
 
     val noiseTraderRef = TestActorRef(generateNoiseTrader(market.ref))
-
     val noiseTrader = noiseTraderRef.underlyingActor
+
+    val assets = generateRandomAsset("GOOG")
+    noiseTraderRef ! assets
 
     scenario("NoiseTrader wants to generate a new ask order") {
 
@@ -64,11 +66,12 @@ class NoiseTraderSpec extends TestKit(ActorSystem("NoiseTraderSpec")) with
 
       When("NoiseTrader specifies its desired ask quantity")
 
-      val askQuantity = noiseTrader.decideAskQuantity()
+      val instrument = noiseTrader.decideInstrument()
+      val askQuantity = noiseTrader.decideAskQuantity(instrument)
 
       Then("the desired ask quantity should be strictly positive (and less than some upper bound)")
 
-      askQuantity should (be >= 0.0 and be <= noiseTrader.maxQuantity)
+      askQuantity should (be >= 0.0 and be <= noiseTrader.assets(instrument))
 
     }
 

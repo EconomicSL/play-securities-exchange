@@ -37,7 +37,7 @@ trait TraderLike {
 
   def decideBidPrice(): Double
 
-  def decideAskQuantity(): Double
+  def decideAskQuantity(instrument: SecurityLike): Double
 
   def decideBidQuantity(): Double
 
