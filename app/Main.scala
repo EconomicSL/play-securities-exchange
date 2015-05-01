@@ -1,6 +1,8 @@
 import akka.actor.{Props, ActorSystem}
 import models._
 
+import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.Random
 
 object Main extends App
@@ -33,5 +35,10 @@ object Main extends App
   noiseTrader ! initialCurrency
 
   noiseTrader ! StartTrading
+
+  // terminate the simulation
+  tradingPlatform.scheduler.scheduleOnce(5.minute)(
+    tradingPlatform.shutdown()
+  )
 
 }

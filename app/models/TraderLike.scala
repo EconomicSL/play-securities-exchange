@@ -29,19 +29,21 @@ trait TraderLike {
       market ! generateNewOrder()
     case OrderAccepted =>
       market ! generateNewOrder()
+    case OrderRejected =>
+      new AssertionError("Your order has been rejected!")
   }
 
   def decideAskPrice(): Double
 
   def decideBidPrice(): Double
 
-  def decideAskQuantity(): Double
+  def decideAskQuantity(instrument: SecurityLike): Double
 
   def decideBidQuantity(): Double
 
-  def generateNewAskOrder(): AskOrderLike
+  def generateNewAskOrder(instrument: SecurityLike): AskOrderLike
 
-  def generateNewBidOrder(): BidOrderLike
+  def generateNewBidOrder(instrument: SecurityLike): BidOrderLike
 
   def generateNewOrder(): OrderLike
 
