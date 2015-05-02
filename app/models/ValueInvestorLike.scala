@@ -16,21 +16,22 @@ limitations under the License.
 
 package models
 
-import com.typesafe.config.ConfigFactory
-
-import scala.collection.JavaConverters._
-import scala.util.Random
+import akka.actor.{ActorLogging, Actor}
 
 
-/** Create securities given information in configuration file. */
-trait SecuritiesProvider {
+trait ValueInvestorLike extends InvestorLike {
+  this: Actor with ActorLogging =>
 
-  private val securitiesConf = ConfigFactory.load("securities.conf")
+  def valuations = ???
 
-  val securities: List[SecurityLike] = {
-    val prng = new Random(securitiesConf.getInt("seed"))
-    val symbols = securitiesConf.getStringList("symbols").asScala.toList
-    for (symbol <- symbols) yield Stock(symbol)
+  val investorLikeBehavior: Receive = {
+    ???
   }
 
+  def decideSecurity(): SecurityLike
+
 }
+
+
+
+

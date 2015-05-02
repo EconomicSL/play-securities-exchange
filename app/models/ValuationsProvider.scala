@@ -22,15 +22,16 @@ import scala.collection.JavaConverters._
 import scala.util.Random
 
 
-/** Create securities given information in configuration file. */
-trait SecuritiesProvider {
+/** Create valuations given information in configuration file. */
+trait ValuationsProvider {
+  this: SecuritiesProvider =>
 
-  private val securitiesConf = ConfigFactory.load("securities.conf")
+  private val tradersConf = ConfigFactory.load("traders.conf")
 
-  val securities: List[SecurityLike] = {
-    val prng = new Random(securitiesConf.getInt("seed"))
-    val symbols = securitiesConf.getStringList("symbols").asScala.toList
-    for (symbol <- symbols) yield Stock(symbol)
+  val valuations = {
+    // val prng = new Random(tradersConf.getInt("seed"))
+    // val symbols = tradersConf.getStringList("symbols").asScala.toList
+    // for (symbol <- symbols) yield Stock(symbol)
   }
 
 }
