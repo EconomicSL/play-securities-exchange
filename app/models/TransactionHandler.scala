@@ -18,12 +18,12 @@ package models
 
 import akka.actor.{ActorRef, Actor}
 
+import scala.util.{Failure, Success, Try}
+
 
 /** Handles clearing of an individual transaction.
   *
   * Reduced form model of a payments system.
-  *
-  * @todo handle failure to send payment and failure to send securities.
   *
   */
 class TransactionHandler extends Actor {
@@ -32,38 +32,61 @@ class TransactionHandler extends Actor {
 
   var seller: ActorRef = Actor.noSender
 
-  var payment: Option[Payment] = None
+  var buyerResponse: Try[Payment] = Failure(NoBuyerResponse())
 
-  var securities: Option[Assets] = None
-
-  def paymentReceived: Boolean = {
-    payment.isDefined
-  }
-
-  def securitiesReceived: Boolean = {
-    securities.isDefined
-  }
+  var sellerResponse: Try[Assets] = Failure(NoSellerResponse())
 
   def receive: Receive = {
-    case fill: FillLike =>
-      seller = fill.askTradingPartyRef; buyer = fill.bidTradingPartyRef
-      seller ! RequestAssets(fill.instrument, fill.quantity)
-      buyer ! RequestPayment(fill.price * fill.quantity)
-    case Payment(amount) =>
-      payment = Some(Payment(amount))
-      if (securitiesReceived) {
-        buyer ! securities.get
-        seller ! payment.get
-        context.stop(self)
+    case mesg: FillLike =>
+      seller = mesg.askTradingPartyRef
+      buyer = mesg.bidTradingPartyRef
+      seller ! RequestAssets(mesg.instrument, mesg.quantity)
+      buyer ! RequestPayment(mesg.price * mesg.quantity)
+
+    case mesg: Try[Payment] => mesg match {
+      case Success(payment) => sellerResponse match {
+        case Failure(NoSellerResponse()) =>
+          buyerResponse = mesg  // store buyer response
+        case Failure(InsufficientAssetsException()) =>
+          buyer ! payment  // refund payment
+        case Success(assets) => // process transaction!
+          buyer ! assets
+          seller ! payment
       }
-    case Assets(instrument, quantity) =>
-      securities = Some(Assets(instrument, quantity))
-      if (paymentReceived) {
-        buyer ! securities.get
-        seller ! payment.get
-        context.stop(self)
+      case Failure(InsufficientFundsException()) => sellerResponse match {
+        case Failure(NoSellerResponse()) =>
+          buyerResponse = mesg  // store buyer response
+        case Failure(InsufficientAssetsException()) =>
+          // nothing to refund!
+        case Success(assets) =>
+          seller ! assets  // refund assets to seller
       }
+    }
+
+    case mesg: Try[Assets] => mesg match {
+      case Success(assets) => buyerResponse match {
+        case Failure(NoBuyerResponse()) =>
+          sellerResponse = mesg  // store seller response
+        case Failure(InsufficientFundsException()) =>
+          seller ! assets  // refund assets!
+        case Success(payment) => // process  transaction!
+          buyer ! assets
+          seller ! payment
+      }
+      case Failure(InsufficientAssetsException()) => buyerResponse match {
+        case Failure(NoBuyerResponse()) =>
+          sellerResponse = mesg  // store seller response
+        case Failure(InsufficientFundsException()) =>
+          // nothing to refund!
+        case Success(payment) =>
+          buyer ! payment  // refund payment!
+      }
+    }
   }
+
+  case class NoBuyerResponse(message: String = "Buyer response not received") extends Exception
+
+  case class NoSellerResponse(message: String = "Buyer response not received") extends Exception
 
 }
 

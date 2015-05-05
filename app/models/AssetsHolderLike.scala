@@ -89,3 +89,9 @@ case class RequestPayment(amount: Double) {
   require(amount > 0.0)
 
 }
+
+
+case class InsufficientFundsException(message: String = "Buyer has insufficient funds.") extends Exception(message)
+
+
+case class InsufficientAssetsException(message: String = "Seller has insufficient assets.") extends Exception(message)
