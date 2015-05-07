@@ -23,7 +23,10 @@ case class SecuritiesMarket(instrument: SecurityLike) extends MarketLike
 
   def receive: Receive = {
     case order: OrderLike => auctionMechanism forward order
-    case fill: FillLike => clearingMechanism forward fill
+      log.info(s",${System.nanoTime()}" + order.toString)
+    case fill: FillLike =>
+      log.info(s",${System.nanoTime()}" + fill.toString)
+      clearingMechanism forward fill
   }
 
 }

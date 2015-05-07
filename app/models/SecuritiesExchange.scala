@@ -57,7 +57,6 @@ class SecuritiesExchange extends ExchangeLike
       case Some(market) =>  // exchange has a market for the instrument
         router.route(order, sender())
         sender() ! OrderAccepted
-        log.info(s",${System.nanoTime()}" + order.toString)
       case None =>  // exchange does not have a market for the instrument
         sender() ! OrderRejected
     }

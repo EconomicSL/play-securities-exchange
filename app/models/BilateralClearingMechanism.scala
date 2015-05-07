@@ -23,10 +23,10 @@ import akka.actor.Props
 class BilateralClearingMechanism extends ClearingMechanismLike {
 
   val clearingMechanismBehavior: Receive = {
-    case fill: FillLike =>
-      log.info(s",${System.nanoTime()}" + fill.toString)
-      val transactionHandler = context.actorOf(Props[TransactionHandler])
-      transactionHandler ! fill
+    case PartialFill(seller, buyer, tradable, price, quantity) =>
+      context.actorOf(TransactionHandler.props(seller, buyer, tradable, price, quantity))
+    case TotalFill(seller, buyer, tradable, price, quantity) =>
+      context.actorOf(TransactionHandler.props(seller, buyer, tradable, price, quantity))
   }
 
   def receive: Receive = {
