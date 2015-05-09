@@ -1,3 +1,4 @@
+/*
 import akka.actor.{ActorRef, ActorSystem}
 import akka.testkit.{TestActorRef, TestProbe, TestKit}
 import models._
@@ -191,3 +192,4 @@ class TransactionHandlerSpec extends TestKit(ActorSystem("TransactionHandlerSpec
 
 }
 
+*/

@@ -74,13 +74,13 @@ class CCPClearingMechanismSpec extends TestKit(ActorSystem("CCPClearingMechanism
 
       Then("AskTradingParty should receive a request for Securities")
 
-      askTradingParty.expectMsg(RequestAssets(fill.instrument, fill.quantity))
+      askTradingParty.expectMsg(AssetsRequest(fill.instrument, fill.quantity))
       askTradingParty.reply(Assets(fill.instrument, fill.quantity))
 
       Then("BidTradingParty should receive a request for Payment")
 
       val paymentAmount = fill.price * fill.quantity
-      bidTradingParty.expectMsg(RequestPayment(paymentAmount))
+      bidTradingParty.expectMsg(PaymentRequest(paymentAmount))
       bidTradingParty.reply(Payment(paymentAmount))
 
       Then("AskTradingParty should receive a Payment")
@@ -115,13 +115,13 @@ class CCPClearingMechanismSpec extends TestKit(ActorSystem("CCPClearingMechanism
 
       Then("AskTradingParty should receive a request for Securities")
 
-      askTradingParty.expectMsg(RequestAssets(fill.instrument, fill.quantity))
+      askTradingParty.expectMsg(AssetsRequest(fill.instrument, fill.quantity))
       askTradingParty.reply(Assets(fill.instrument, fill.quantity))
 
       Then("BidTradingParty should receive a request for Payment")
 
       val paymentAmount = fill.price * fill.quantity
-      bidTradingParty.expectMsg(RequestPayment(paymentAmount))
+      bidTradingParty.expectMsg(PaymentRequest(paymentAmount))
       bidTradingParty.reply(Payment(paymentAmount))
 
       Then("AskTradingParty should receive a Payment")

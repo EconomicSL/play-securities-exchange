@@ -173,7 +173,7 @@ class NoiseTraderSpec extends TestKit(ActorSystem("NoiseTraderSpec")) with
 
       When("NoiseTrader receives RequestPayment")
 
-      val paymentRequest = RequestPayment(generateRandomAmount())
+      val paymentRequest = PaymentRequest(generateRandomAmount())
       noiseTraderRef ! paymentRequest
       
       Then("NoiseTrader decrements its cash holdings and")
@@ -197,7 +197,7 @@ class NoiseTraderSpec extends TestKit(ActorSystem("NoiseTraderSpec")) with
       
       When("NoiseTrader receives RequestAssets")
 
-      val assetsRequest = RequestAssets(initialAssetHoldings.instrument, generateRandomQuantity())
+      val assetsRequest = AssetsRequest(initialAssetHoldings.instrument, generateRandomQuantity())
       noiseTraderRef ! assetsRequest
 
       Then("NoiseTrader decrements its asset holdings and")

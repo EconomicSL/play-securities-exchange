@@ -19,6 +19,7 @@ package models
 import akka.actor.{ActorLogging, Actor}
 
 import scala.collection.mutable
+import scala.util.{Failure, Success, Try}
 
 
 trait AssetsHolderLike {
@@ -33,8 +34,13 @@ trait AssetsHolderLike {
   }
 
   /* Decrements an actor's cash holdings. */
-  def dishoard(amount: Double): Unit = {
-    assets(Currency) -= amount
+  def dishoard(amount: Double): Try[Payment] = {
+    if (assets(Currency) >= amount) {
+      assets(Currency) -= amount
+      Success(Payment(amount))
+    } else {
+      Failure(InsufficientFundsException())
+    }
   }
 
   /* Increment actor's securities holdings. */
@@ -43,19 +49,24 @@ trait AssetsHolderLike {
   }
 
   /* Decrement actor's securities holdings. */
-  def deccumulate(asset: AssetLike, quantity: Double): Unit = {
-    assets(asset) -= quantity
+  def deccumulate(asset: AssetLike, quantity: Double): Try[Assets] = {
+    if (assets(asset) >= quantity) {
+      assets(asset) -= quantity
+      Success(Assets(asset, quantity))
+    } else {
+      Failure(InsufficientAssetsException())
+    }
   }
 
   def assetsHolderBehavior: Receive = {
     case Payment(amount) =>
       hoard(amount)
-    case RequestPayment(amount) =>
-      dishoard(amount)
-      sender() ! Payment(amount)
-    case RequestAssets(asset, quantity) =>
-      deccumulate(asset, quantity)
-      sender() ! Assets(asset, quantity)
+    case PaymentRequest(amount) =>
+      val payment = dishoard(amount)
+      sender() ! payment
+    case AssetsRequest(asset, quantity) =>
+      val assets = deccumulate(asset, quantity)
+      sender() ! assets
     case Assets(asset, quantity) =>
       accumulate(asset, quantity)
   }
@@ -63,28 +74,14 @@ trait AssetsHolderLike {
 }
 
 
-case class RequestAssets(asset: AssetLike, quantity: Double) {
+case class AssetsRequest(asset: AssetLike, quantity: Double) extends SellerRequestLike {
 
   require(quantity > 0.0)
 
 }
 
 
-case class Assets(instrument: AssetLike, quantity: Double) {
-
-  require(quantity > 0.0)
-
-}
-
-
-case class Payment(amount: Double) {
-
-  require(amount > 0.0)
-
-}
-
-
-case class RequestPayment(amount: Double) {
+case class PaymentRequest(amount: Double) extends BuyerRequestLike {
 
   require(amount > 0.0)
 

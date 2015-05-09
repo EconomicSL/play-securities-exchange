@@ -16,7 +16,7 @@ limitations under the License.
 
 package models
 
-import akka.actor.{Props, ActorLogging, ActorRef, Actor}
+import akka.actor._
 
 import scala.util.{Failure, Success, Try}
 
@@ -55,23 +55,26 @@ class TransactionHandler(buyer: ActorRef,
   def receive: Receive = {
 
     case Success(Payment(amount)) => sellerResponse match {
-      case Failure(NoSellerResponseException(msg)) =>
-        buyerResponse = Success(Payment(amount))  // store buyer response
-      case Failure(ex) =>
-        buyer ! Payment(amount)  // refund payment
-      case Success(Assets(instrument, quantity)) => // process transaction!
-        val transaction = Transaction(seller, buyer, instrument, amount / quantity, quantity)
-        log.info(transaction.toString)
-        buyer ! Assets(instrument, quantity)
+      case Failure(NoSellerResponseException(msg)) =>  // Seller not yet responded: store buyer response for later.
+        buyerResponse = Success(Payment(amount))
+      case Failure(ex) =>  // Seller failed to deliver: refund payment then die!
+        buyer ! Payment(amount)
+        self ! PoisonPill
+      case Success(assets) =>  // Seller successfully delivered: process transaction then die!
+        val transaction = Transaction(seller, buyer, tradable, price, quantity)
+        log.info(s",${System.nanoTime()}" + transaction.toString)
+        buyer ! assets
         seller ! Payment(amount)
+        self ! PoisonPill
     }
     case Failure(InsufficientFundsException(msg)) => sellerResponse match {
-      case Failure(NoSellerResponseException(msg)) =>
+      case Failure(NoSellerResponseException(otherMsg)) => // Seller not yet responded: store buyer response for later.
         buyerResponse = Failure(InsufficientFundsException(msg))  // store buyer response
-      case Failure(ex) =>
-        // nothing to refund!
+      case Failure(ex) =>  // Seller also failed to deliver: just die!
+        self ! PoisonPill
       case Success(assets) =>
         seller ! assets  // refund assets to seller
+        self ! PoisonPill
     }
     case Success(Assets(instrument, quantity)) => buyerResponse match {
       case Failure(NoBuyerResponseException(msg)) =>
@@ -79,18 +82,20 @@ class TransactionHandler(buyer: ActorRef,
       case Failure(ex) =>
         seller ! Assets(instrument, quantity)  // refund assets!
       case Success(Payment(amount)) => // process  transaction!
-        val transaction = Transaction(seller, buyer, instrument, amount / quantity, quantity)
+        val transaction = Transaction(buyer, seller, tradable, price, quantity)
         log.info(transaction.toString)
         buyer ! Assets(instrument, quantity)
         seller ! Payment(amount)
     }
-    case Failure(InsufficientAssetsException(blah)) => buyerResponse match {
-      case Failure(NoBuyerResponseException(msg)) =>
-        sellerResponse = Failure(InsufficientAssetsException(blah))  // store seller response
-      case Failure(InsufficientFundsException(msg)) =>
+    case Failure(InsufficientAssetsException(msg)) => buyerResponse match {
+      case Failure(NoBuyerResponseException(otherMsg)) =>
+        sellerResponse = Failure(InsufficientAssetsException(msg))  // store seller response
+      case Failure(InsufficientFundsException(otherMsg)) =>
         // nothing to refund!
+        self ! PoisonPill
       case Success(payment) =>
         buyer ! payment  // refund payment!
+        self ! PoisonPill
     }
 
   }

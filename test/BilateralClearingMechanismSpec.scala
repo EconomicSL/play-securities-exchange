@@ -66,12 +66,12 @@ class BilateralClearingMechanismSpec extends TestKit(ActorSystem("NoiseTraderSpe
 
       Then("AskTradingParty should receive a request for Securities")
 
-      val securitiesRequest = RequestAssets(fill.instrument, fill.quantity)
+      val securitiesRequest = AssetsRequest(fill.instrument, fill.quantity)
       askTradingParty.expectMsg(securitiesRequest)
 
       Then("BidTradingParty should receive a request for Payment")
 
-      val paymentRequest = RequestPayment(fill.price * fill.quantity)
+      val paymentRequest = PaymentRequest(fill.price * fill.quantity)
       bidTradingParty.expectMsg(paymentRequest)
 
     }
@@ -89,12 +89,12 @@ class BilateralClearingMechanismSpec extends TestKit(ActorSystem("NoiseTraderSpe
 
       Then("AskTradingParty should receive a request for Securities")
 
-      val securitiesRequest = RequestAssets(fill.instrument, fill.quantity)
+      val securitiesRequest = AssetsRequest(fill.instrument, fill.quantity)
       askTradingParty.expectMsg(securitiesRequest)
 
       Then("BidTradingParty should receive a request for Payment")
 
-      val paymentRequest = RequestPayment(fill.price * fill.quantity)
+      val paymentRequest = PaymentRequest(fill.price * fill.quantity)
       bidTradingParty.expectMsg(paymentRequest)
 
     }

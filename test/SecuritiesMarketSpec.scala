@@ -50,11 +50,11 @@ class SecuritiesMarketSpec extends TestKit(ActorSystem("Securities-Market-Spec")
       Then("the buyer should receive securities and the seller should receive payment.")
 
       // generate messages that should be received by seller
-      val requestAssets = RequestAssets(testInstrument, ask1.quantity)
+      val requestAssets = AssetsRequest(testInstrument, ask1.quantity)
       val payment = Payment(ask1.limitPrice * ask1.quantity)
 
       // generate messages that should be received by buyer
-      val requestPayment = RequestPayment(ask1.limitPrice * ask1.quantity)
+      val requestPayment = PaymentRequest(ask1.limitPrice * ask1.quantity)
       val assets = Assets(testInstrument, ask1.quantity)
 
       // tests...
