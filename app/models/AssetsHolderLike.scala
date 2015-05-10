@@ -74,14 +74,28 @@ trait AssetsHolderLike {
 }
 
 
-case class AssetsRequest(asset: AssetLike, quantity: Double) extends SellerRequestLike {
+case class AssetsRequest(asset: AssetLike, quantity: Double) {
 
   require(quantity > 0.0)
 
 }
 
 
-case class PaymentRequest(amount: Double) extends BuyerRequestLike {
+case class Assets(instrument: AssetLike, quantity: Double) {
+
+  require(quantity > 0.0)
+
+}
+
+
+case class Payment(amount: Double) {
+
+  require(amount > 0.0)
+
+}
+
+
+case class PaymentRequest(amount: Double) {
 
   require(amount > 0.0)
 

@@ -24,9 +24,9 @@ class BilateralClearingMechanism extends ClearingMechanismLike {
 
   val clearingMechanismBehavior: Receive = {
     case PartialFill(seller, buyer, tradable, price, quantity) =>
-      context.actorOf(TransactionHandler.props(seller, buyer, tradable, price, quantity))
+      context.actorOf(TransactionHandler.props(buyer, seller, tradable, price, quantity))
     case TotalFill(seller, buyer, tradable, price, quantity) =>
-      context.actorOf(TransactionHandler.props(seller, buyer, tradable, price, quantity))
+      context.actorOf(TransactionHandler.props(buyer, seller, tradable, price, quantity))
   }
 
   def receive: Receive = {

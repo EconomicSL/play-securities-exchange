@@ -48,61 +48,61 @@ class TransactionHandler(buyer: ActorRef,
   seller ! AssetsRequest(tradable, quantity)
   buyer ! PaymentRequest(price * quantity)
 
-  var buyerResponse: Try[BuyerResponseLike] = Failure(NoBuyerResponseException("Buyer response not received!"))
+  /* Only evaluated if necessary! */
+  lazy val transaction = Transaction(seller, buyer, tradable, price, quantity)
 
-  var sellerResponse: Try[SellerResponseLike] = Failure(NoSellerResponseException("Seller response not received!"))
-
-  def receive: Receive = {
-
-    case Success(Payment(amount)) => sellerResponse match {
-      case Failure(NoSellerResponseException(msg)) =>  // Seller not yet responded: store buyer response for later.
-        buyerResponse = Success(Payment(amount))
-      case Failure(ex) =>  // Seller failed to deliver: refund payment then die!
-        buyer ! Payment(amount)
-        self ! PoisonPill
-      case Success(assets) =>  // Seller successfully delivered: process transaction then die!
-        val transaction = Transaction(seller, buyer, tradable, price, quantity)
+  def awaitingBuyerResponse(sellerResponse: Try[Assets]): Receive = sellerResponse match {
+    case Success(assets) => {  // partial function for handling buyer response given successful seller response
+      case Success(payment) =>
         log.info(s",${System.nanoTime()}" + transaction.toString)
         buyer ! assets
-        seller ! Payment(amount)
+        seller ! payment
         self ! PoisonPill
-    }
-    case Failure(InsufficientFundsException(msg)) => sellerResponse match {
-      case Failure(NoSellerResponseException(otherMsg)) => // Seller not yet responded: store buyer response for later.
-        buyerResponse = Failure(InsufficientFundsException(msg))  // store buyer response
-      case Failure(ex) =>  // Seller also failed to deliver: just die!
-        self ! PoisonPill
-      case Success(assets) =>
+      case Failure(ex) =>
         seller ! assets  // refund assets to seller
         self ! PoisonPill
     }
-    case Success(Assets(instrument, quantity)) => buyerResponse match {
-      case Failure(NoBuyerResponseException(msg)) =>
-        sellerResponse = Success(Assets(instrument, quantity))  // store seller response
-      case Failure(ex) =>
-        seller ! Assets(instrument, quantity)  // refund assets!
-      case Success(Payment(amount)) => // process  transaction!
-        val transaction = Transaction(buyer, seller, tradable, price, quantity)
-        log.info(transaction.toString)
-        buyer ! Assets(instrument, quantity)
-        seller ! Payment(amount)
-    }
-    case Failure(InsufficientAssetsException(msg)) => buyerResponse match {
-      case Failure(NoBuyerResponseException(otherMsg)) =>
-        sellerResponse = Failure(InsufficientAssetsException(msg))  // store seller response
-      case Failure(InsufficientFundsException(otherMsg)) =>
-        // nothing to refund!
+    case Failure(exception) => {  // partial function for handling buyer response given failed seller response
+      case Success(payment) =>  // refund payment to buyer
+        buyer ! payment
         self ! PoisonPill
-      case Success(payment) =>
-        buyer ! payment  // refund payment!
+      case Failure(otherException) => // nothing to refund
         self ! PoisonPill
     }
-
   }
 
-  case class NoBuyerResponseException(message: String) extends Exception
+  def awaitingSellerResponse(buyerResponse: Try[Payment]): Receive = buyerResponse match {
+    case Success(payment) => {  // partial function for handling seller response given successful buyer response
+      case Success(assets) =>
+        log.info(s",${System.nanoTime()}" + transaction.toString)
+        buyer ! assets
+        seller ! payment
+        self ! PoisonPill
+      case Failure(exception) =>
+        seller ! payment  // refund payment to buyer
+        self ! PoisonPill
+    }
+    case Failure(exception) => {  // partial function for handling seller response given failed buyer response
+      case Success(assets) =>  // refund assets to seller
+        buyer ! assets
+        self ! PoisonPill
+      case Failure(otherException) =>  // nothing to refund
+        self ! PoisonPill
+    }
+  }
 
-  case class NoSellerResponseException(message: String) extends Exception
+  def receive: Receive = {
+
+    case Success(Payment(amount)) =>
+      context.become(awaitingSellerResponse(Success(Payment(amount))))
+    case Failure(InsufficientFundsException(msg)) =>
+      context.become(awaitingSellerResponse(Failure(InsufficientFundsException(msg))))
+    case Success(Assets(instrument, quantity)) =>
+      context.become(awaitingBuyerResponse(Success(Assets(instrument, quantity))))
+    case Failure(InsufficientAssetsException(msg)) =>
+      context.become(awaitingBuyerResponse(Failure(InsufficientAssetsException(msg))))
+
+  }
 
 }
 
