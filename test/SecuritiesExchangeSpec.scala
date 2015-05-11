@@ -1,9 +1,9 @@
-import akka.actor.{Props, ActorSystem}
+import akka.actor.ActorSystem
 import akka.testkit.{TestProbe, TestKit, TestActorRef}
 import models._
 import org.scalatest.{FeatureSpecLike, GivenWhenThen, Matchers}
 
-import scala.util.Random
+import scala.util.{Success, Random}
 
 
 class SecuritiesExchangeSpec extends TestKit(ActorSystem("Securities-Exchange-Spec"))
@@ -63,10 +63,10 @@ class SecuritiesExchangeSpec extends TestKit(ActorSystem("Securities-Exchange-Sp
 
       // tests...
       seller.expectMsg(requestAssets)
-      seller.reply(assets)
+      seller.reply(Success(assets))
 
       buyer.expectMsg(requestPayment)
-      buyer.reply(payment)
+      buyer.reply(Success(payment))
 
       buyer.expectMsg(assets)
       seller.expectMsg(payment)

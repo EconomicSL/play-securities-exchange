@@ -1,10 +1,9 @@
-/*
 import akka.actor.{ActorRef, ActorSystem}
 import akka.testkit.{TestActorRef, TestProbe, TestKit}
 import models._
 import org.scalatest.{BeforeAndAfterAll, Matchers, GivenWhenThen, FeatureSpecLike}
 
-import scala.util.Random
+import scala.util.{Success, Random}
 
 class TransactionHandlerSpec extends TestKit(ActorSystem("TransactionHandlerSpec")) with
   FeatureSpecLike with
@@ -61,8 +60,6 @@ class TransactionHandlerSpec extends TestKit(ActorSystem("TransactionHandlerSpec
 
     scenario("TransactionHandler receives a PartialFill.") {
 
-      val transactionHandlerRef = TestActorRef(new TransactionHandler)
-
       Given("An existing PartialFill")
 
       val askTradingParty = TestProbe()
@@ -71,21 +68,19 @@ class TransactionHandlerSpec extends TestKit(ActorSystem("TransactionHandlerSpec
 
       When("TransactionHandler receives a PartialFill")
 
-      transactionHandlerRef ! fill
+      val transactionHandlerRef = TestActorRef(new TransactionHandler(fill))
 
       Then("TransactionHandler should send requests for payment and securities.")
 
-      val securitiesRequest = RequestAssets(fill.instrument, fill.quantity)
+      val securitiesRequest = AssetsRequest(fill.instrument, fill.quantity)
       askTradingParty.expectMsg(securitiesRequest)
 
-      val paymentRequest = RequestPayment(fill.price * fill.quantity)
+      val paymentRequest = PaymentRequest(fill.price * fill.quantity)
       bidTradingParty.expectMsg(paymentRequest)
 
     }
 
     scenario("TransactionHandler receives a TotalFill.") {
-
-      val transactionHandlerRef = TestActorRef(new TransactionHandler)
 
       Given("An existing TotalFill")
 
@@ -95,14 +90,14 @@ class TransactionHandlerSpec extends TestKit(ActorSystem("TransactionHandlerSpec
 
       When("TransactionHandler receives the TotalFill")
 
-      transactionHandlerRef ! fill
+      val transactionHandlerRef = TestActorRef(new TransactionHandler(fill))
 
       Then("TransactionHandler should send requests for payment and securities.")
 
-      val securitiesRequest = RequestAssets(fill.instrument, fill.quantity)
+      val securitiesRequest = AssetsRequest(fill.instrument, fill.quantity)
       askTradingParty.expectMsg(securitiesRequest)
 
-      val paymentRequest = RequestPayment(fill.price * fill.quantity)
+      val paymentRequest = PaymentRequest(fill.price * fill.quantity)
       bidTradingParty.expectMsg(paymentRequest)
 
     }
@@ -112,78 +107,72 @@ class TransactionHandlerSpec extends TestKit(ActorSystem("TransactionHandlerSpec
 
     scenario("TransactionHandler receives Payment before Securities.") {
 
-      val transactionHandlerRef = TestActorRef(new TransactionHandler)
-      val transactionHandler = transactionHandlerRef.underlyingActor
-
       Given("TransactionHandler has already received a fill")
 
       val askTradingParty = TestProbe()
       val bidTradingParty = TestProbe()
       val fill = generateRandomPartialFill(askTradingParty.ref, bidTradingParty.ref)
 
-      transactionHandlerRef ! fill
+      val transactionHandlerRef = TestActorRef(new TransactionHandler(fill))
+
+      val securitiesRequest = AssetsRequest(fill.instrument, fill.quantity)
+      askTradingParty.expectMsg(securitiesRequest)
+
+      val paymentRequest = PaymentRequest(fill.price * fill.quantity)
+      bidTradingParty.expectMsg(paymentRequest)
 
       When("TransactionHandler receives Payment")
 
       val payment = Payment(fill.price * fill.quantity)
-      transactionHandlerRef ! payment
-      assert(transactionHandler.paymentReceived)
+      transactionHandlerRef ! Success(payment)
 
       When("TransactionHandler receives Securities")
 
       val securities = Assets(fill.instrument, fill.quantity)
-      transactionHandlerRef ! securities
-      assert(transactionHandler.securitiesReceived)
+      transactionHandlerRef ! Success(securities)
 
       Then("TransactionHandler should forward Payment to the seller")
 
-      val securitiesRequest = RequestAssets(fill.instrument, fill.quantity)
-      askTradingParty.expectMsg(securitiesRequest)
       askTradingParty.expectMsg(payment)
 
       Then("TransactionHandler should forward Securities to the buyer")
 
-      val paymentRequest = RequestPayment(fill.price * fill.quantity)
-      bidTradingParty.expectMsg(paymentRequest)
       bidTradingParty.expectMsg(securities)
 
     }
 
     scenario("TransactionHandler receives Securities before Payment.") {
 
-      val transactionHandlerRef = TestActorRef(new TransactionHandler)
-      val transactionHandler = transactionHandlerRef.underlyingActor
-
       Given("TransactionHandler has already received a fill")
 
       val askTradingParty = TestProbe()
       val bidTradingParty = TestProbe()
       val fill = generateRandomPartialFill(askTradingParty.ref, bidTradingParty.ref)
 
-      transactionHandlerRef ! fill
+      val transactionHandlerRef = TestActorRef(new TransactionHandler(fill))
+
+      val securitiesRequest = AssetsRequest(fill.instrument, fill.quantity)
+      askTradingParty.expectMsg(securitiesRequest)
+
+      val paymentRequest = PaymentRequest(fill.price * fill.quantity)
+      bidTradingParty.expectMsg(paymentRequest)
 
       When("TransactionHandler receives Securities")
 
       val securities = Assets(fill.instrument, fill.quantity)
-      transactionHandlerRef ! securities
-      assert(transactionHandler.securitiesReceived)
+      transactionHandlerRef ! Success(securities)
 
       When("TransactionHandler receives Payment")
 
       val payment = Payment(fill.price * fill.quantity)
-      transactionHandlerRef ! payment
-      assert(transactionHandler.paymentReceived)
+      transactionHandlerRef ! Success(payment)
 
       Then("TransactionHandler should forward Payment to the seller")
 
-      val securitiesRequest = RequestAssets(fill.instrument, fill.quantity)
-      askTradingParty.expectMsg(securitiesRequest)
       askTradingParty.expectMsg(payment)
 
       Then("TransactionHandler should forward Securities to the buyer")
 
-      val paymentRequest = RequestPayment(fill.price * fill.quantity)
-      bidTradingParty.expectMsg(paymentRequest)
       bidTradingParty.expectMsg(securities)
 
     }
@@ -191,5 +180,3 @@ class TransactionHandlerSpec extends TestKit(ActorSystem("TransactionHandlerSpec
   }
 
 }
-
-*/

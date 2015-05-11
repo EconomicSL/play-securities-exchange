@@ -3,7 +3,7 @@ import akka.testkit.{TestActorRef, TestProbe, TestKit}
 import models._
 import org.scalatest.{BeforeAndAfterAll, Matchers, GivenWhenThen, FeatureSpecLike}
 
-import scala.util.Random
+import scala.util.{Success, Random}
 
 
 class CCPClearingMechanismSpec extends TestKit(ActorSystem("CCPClearingMechanismSpec")) with
@@ -75,13 +75,13 @@ class CCPClearingMechanismSpec extends TestKit(ActorSystem("CCPClearingMechanism
       Then("AskTradingParty should receive a request for Securities")
 
       askTradingParty.expectMsg(AssetsRequest(fill.instrument, fill.quantity))
-      askTradingParty.reply(Assets(fill.instrument, fill.quantity))
+      askTradingParty.reply(Success(Assets(fill.instrument, fill.quantity)))
 
       Then("BidTradingParty should receive a request for Payment")
 
       val paymentAmount = fill.price * fill.quantity
       bidTradingParty.expectMsg(PaymentRequest(paymentAmount))
-      bidTradingParty.reply(Payment(paymentAmount))
+      bidTradingParty.reply(Success(Payment(paymentAmount)))
 
       Then("AskTradingParty should receive a Payment")
 
@@ -116,13 +116,13 @@ class CCPClearingMechanismSpec extends TestKit(ActorSystem("CCPClearingMechanism
       Then("AskTradingParty should receive a request for Securities")
 
       askTradingParty.expectMsg(AssetsRequest(fill.instrument, fill.quantity))
-      askTradingParty.reply(Assets(fill.instrument, fill.quantity))
+      askTradingParty.reply(Success(Assets(fill.instrument, fill.quantity)))
 
       Then("BidTradingParty should receive a request for Payment")
 
       val paymentAmount = fill.price * fill.quantity
       bidTradingParty.expectMsg(PaymentRequest(paymentAmount))
-      bidTradingParty.reply(Payment(paymentAmount))
+      bidTradingParty.reply(Success(Payment(paymentAmount)))
 
       Then("AskTradingParty should receive a Payment")
 

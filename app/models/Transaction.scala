@@ -17,16 +17,14 @@ limitations under the License.
 package models
 
 
-/** Bilateral clearing mechanism. */
-class BilateralClearingMechanism extends ClearingMechanismLike {
+/** Represents a cleared transaction between a buyer and a seller. */
+case class Transaction(fill: FillLike) {
 
-  val clearingMechanismBehavior: Receive = {
-    case fill: FillLike =>
-      context.actorOf(TransactionHandler.props(fill))
-  }
-
-  def receive: Receive = {
-    clearingMechanismBehavior
+  override def toString: String = {
+    s",${fill.askTradingPartyRef.path.name}," +
+    s"${fill.bidTradingPartyRef.path.name}," +
+    s"$getClass,${fill.instrument}," +
+    s"${fill.price},${fill.quantity}"
   }
 
 }

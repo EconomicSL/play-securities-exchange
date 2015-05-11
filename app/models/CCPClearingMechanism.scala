@@ -18,6 +18,8 @@ package models
 
 import akka.actor.{ActorRef, Props}
 
+import scala.collection.mutable
+
 
 /** Central counterparty (CCP) clearing mechanism.
   *
@@ -29,6 +31,11 @@ import akka.actor.{ActorRef, Props}
   */
 class CCPClearingMechanism extends ClearingMechanismLike
   with AssetsHolderLike {
+
+  /* For now assume that central counterparty has "deep pockets". */
+  override val assets: mutable.Map[AssetLike, Double] = {
+    mutable.Map[AssetLike, Double]().withDefaultValue(Double.PositiveInfinity)
+  }
 
   /* BilateralClearingMechanism can be used to process novated fills. */
   val bilateralClearingMechanism: ActorRef = context.actorOf(Props[BilateralClearingMechanism])
