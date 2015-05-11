@@ -205,8 +205,42 @@ class TransactionHandlerSpec extends TestKit(ActorSystem("TransactionHandlerSpec
       Then("TransactionHandler should refund securities to the seller")
 
       askTradingParty.expectMsg(securities)
+      bidTradingParty.expectNoMsg()
 
     }
+
+    scenario("TransactionHandler receives Securities before InsufficientFundsException.") {
+
+      Given("TransactionHandler has already received a fill")
+
+      val askTradingParty = TestProbe()
+      val bidTradingParty = TestProbe()
+      val fill = generateRandomPartialFill(askTradingParty.ref, bidTradingParty.ref)
+
+      val transactionHandlerRef = TestActorRef(new TransactionHandler(fill))
+
+      val securitiesRequest = AssetsRequest(fill.instrument, fill.quantity)
+      askTradingParty.expectMsg(securitiesRequest)
+
+      val paymentRequest = PaymentRequest(fill.price * fill.quantity)
+      bidTradingParty.expectMsg(paymentRequest)
+
+      When("TransactionHandler receives Securities")
+
+      val securities = Assets(fill.instrument, fill.quantity)
+      transactionHandlerRef ! Success(securities)
+
+      When("TransactionHandler receives InsufficientFundsException")
+
+      transactionHandlerRef ! Failure(InsufficientFundsException())
+
+      Then("TransactionHandler should refund securities to the seller")
+
+      askTradingParty.expectMsg(securities)
+      bidTradingParty.expectNoMsg()
+
+    }
+
 
     scenario("TransactionHandler receives InsufficientAssetsException before Payment.") {
 
@@ -235,7 +269,71 @@ class TransactionHandlerSpec extends TestKit(ActorSystem("TransactionHandlerSpec
 
       Then("TransactionHandler should refund payment to the buyer")
 
+      askTradingParty.expectNoMsg()
       bidTradingParty.expectMsg(payment)
+
+    }
+
+    scenario("TransactionHandler receives Payment before InsufficientAssetsException.") {
+
+      Given("TransactionHandler has already received a fill")
+
+      val askTradingParty = TestProbe()
+      val bidTradingParty = TestProbe()
+      val fill = generateRandomPartialFill(askTradingParty.ref, bidTradingParty.ref)
+
+      val transactionHandlerRef = TestActorRef(new TransactionHandler(fill))
+
+      val securitiesRequest = AssetsRequest(fill.instrument, fill.quantity)
+      askTradingParty.expectMsg(securitiesRequest)
+
+      val paymentRequest = PaymentRequest(fill.price * fill.quantity)
+      bidTradingParty.expectMsg(paymentRequest)
+
+      When("TransactionHandler receives Payment")
+
+      val payment = Payment(fill.price * fill.quantity)
+      transactionHandlerRef ! Success(payment)
+
+      When("TransactionHandler receives InsufficientAssetsException")
+
+      transactionHandlerRef ! Failure(InsufficientAssetsException())
+
+      Then("TransactionHandler should refund payment to the buyer")
+
+      askTradingParty.expectNoMsg()
+      bidTradingParty.expectMsg(payment)
+
+    }
+
+    scenario("TransactionHandler receives InsufficientFundsException before InsufficientAssetsException.") {
+
+      Given("TransactionHandler has already received a fill")
+
+      val askTradingParty = TestProbe()
+      val bidTradingParty = TestProbe()
+      val fill = generateRandomPartialFill(askTradingParty.ref, bidTradingParty.ref)
+
+      val transactionHandlerRef = TestActorRef(new TransactionHandler(fill))
+
+      val securitiesRequest = AssetsRequest(fill.instrument, fill.quantity)
+      askTradingParty.expectMsg(securitiesRequest)
+
+      val paymentRequest = PaymentRequest(fill.price * fill.quantity)
+      bidTradingParty.expectMsg(paymentRequest)
+
+      When("TransactionHandler receives InsufficientFundsException")
+
+      transactionHandlerRef ! Failure(InsufficientFundsException())
+
+      When("TransactionHandler receives InsufficientAssetsException")
+
+      transactionHandlerRef ! Failure(InsufficientAssetsException())
+
+      Then("TransactionHandler should die.")
+
+      askTradingParty.expectNoMsg()
+      bidTradingParty.expectNoMsg()
 
     }
 
