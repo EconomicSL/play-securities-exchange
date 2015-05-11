@@ -42,11 +42,11 @@ object Main extends App
   noiseTrader1 ! StartTrading
 
 
-  tradingPlatform.scheduler.scheduleOnce(1.minute) {
+  tradingPlatform.scheduler.scheduleOnce(2.minute) {
     securitiesExchange ! PoisonPill
   }
 
-  tradingPlatform.scheduler.scheduleOnce(2.minute) {
+  tradingPlatform.scheduler.scheduleOnce(4.minute) {
     noiseTrader1 ! PoisonPill
   }
 }
