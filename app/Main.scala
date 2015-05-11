@@ -1,7 +1,10 @@
-import akka.actor.{Props, ActorSystem}
+import akka.actor.{PoisonPill, Props, ActorSystem}
+import models.Reaper.WatchMe
 import models._
 
 import scala.util.Random
+import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext.Implicits.global
 
 object Main extends App
   with SecuritiesProvider {
@@ -22,16 +25,28 @@ object Main extends App
 
   val tradingPlatform = ActorSystem("Trading-Platform")
   val securitiesExchange = tradingPlatform.actorOf(Props[SecuritiesExchange])
-  val noiseTrader = tradingPlatform.actorOf(Props(classOf[NoiseTrader], securitiesExchange, prng))
+  val noiseTrader1 = tradingPlatform.actorOf(Props(classOf[NoiseTrader], securitiesExchange, prng))
 
+  // Initialize the reaper
+  val reaper = tradingPlatform.actorOf(Props[ProductionReaper])
+  reaper ! WatchMe(securitiesExchange)
+  reaper ! WatchMe(noiseTrader1)
 
   // Initialize NoiseTrader
-  val initialAssets = generateRandomAssets()
-  initialAssets foreach(asset => noiseTrader ! asset)
+  val initialAssets = generateRandomAssets(Double.PositiveInfinity)
+  initialAssets foreach(asset => noiseTrader1 ! asset)
 
-  val initialCurrency = generateRandomCurrency()
-  noiseTrader ! initialCurrency
+  val initialCurrency = generateRandomCurrency(Double.PositiveInfinity)
+  noiseTrader1 ! initialCurrency
 
-  noiseTrader ! StartTrading
+  noiseTrader1 ! StartTrading
 
+
+  tradingPlatform.scheduler.scheduleOnce(1.minute) {
+    securitiesExchange ! PoisonPill
+  }
+
+  tradingPlatform.scheduler.scheduleOnce(2.minute) {
+    noiseTrader1 ! PoisonPill
+  }
 }

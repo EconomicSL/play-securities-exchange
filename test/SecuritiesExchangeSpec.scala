@@ -1,9 +1,9 @@
-import akka.actor.{Props, ActorSystem}
+import akka.actor.ActorSystem
 import akka.testkit.{TestProbe, TestKit, TestActorRef}
 import models._
 import org.scalatest.{FeatureSpecLike, GivenWhenThen, Matchers}
 
-import scala.util.Random
+import scala.util.{Success, Random}
 
 
 class SecuritiesExchangeSpec extends TestKit(ActorSystem("Securities-Exchange-Spec"))
@@ -54,19 +54,19 @@ class SecuritiesExchangeSpec extends TestKit(ActorSystem("Securities-Exchange-Sp
       Then("the buyer should receive securities and the seller should receive payment.")
 
       // generate messages that should be received by seller
-      val requestAssets = RequestAssets(testInstrument, ask1.quantity)
+      val requestAssets = AssetsRequest(testInstrument, ask1.quantity)
       val payment = Payment(ask1.limitPrice * ask1.quantity)
 
       // generate messages that should be received by buyer
-      val requestPayment = RequestPayment(ask1.limitPrice * ask1.quantity)
+      val requestPayment = PaymentRequest(ask1.limitPrice * ask1.quantity)
       val assets = Assets(testInstrument, ask1.quantity)
 
       // tests...
       seller.expectMsg(requestAssets)
-      seller.reply(assets)
+      seller.reply(Success(assets))
 
       buyer.expectMsg(requestPayment)
-      buyer.reply(payment)
+      buyer.reply(Success(payment))
 
       buyer.expectMsg(assets)
       seller.expectMsg(payment)

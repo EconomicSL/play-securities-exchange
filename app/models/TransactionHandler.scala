@@ -16,53 +16,101 @@ limitations under the License.
 
 package models
 
-import akka.actor.{ActorRef, Actor}
+import akka.actor._
+
+import scala.util.{Failure, Success, Try}
 
 
-/** Handles clearing of an individual transaction.
+object TransactionHandler {
+
+  def props(fill: FillLike): Props = {
+    Props(new TransactionHandler(fill))
+  }
+
+}
+
+/** Handles clearing of an individual transaction between a buyer and a seller.
   *
-  * Reduced form model of a payments system.
-  *
-  * @todo handle failure to send payment and failure to send securities.
-  *
+  * @param fill ???
   */
-class TransactionHandler extends Actor {
+class TransactionHandler(fill: FillLike) extends Actor
+  with ActorLogging {
 
-  var buyer: ActorRef = Actor.noSender
+  /* Primary constructor */
+  val seller = fill.askTradingPartyRef
+  val buyer = fill.bidTradingPartyRef
 
-  var seller: ActorRef = Actor.noSender
+  seller ! AssetsRequest(fill.instrument, fill.quantity)
+  buyer ! PaymentRequest(fill.price * fill.quantity)
 
-  var payment: Option[Payment] = None
+  /* Only evaluated if necessary! */
+  lazy val transaction = Transaction(fill)
 
-  var securities: Option[Assets] = None
-
-  def paymentReceived: Boolean = {
-    payment.isDefined
+  /** Behavior of a TransactionHandler after receiving the seller's response.
+    *
+    * @param sellerResponse
+    * @return a partial function that handles the buyer's response.
+    */
+  def awaitingBuyerResponse(sellerResponse: Try[Assets]): Receive = sellerResponse match {
+    case Success(assets) => {  // partial function for handling buyer response given successful seller response
+      case Success(payment) =>
+        log.info(s",${System.nanoTime()}" + transaction.toString)
+        buyer ! assets
+        seller ! payment
+        self ! PoisonPill
+      case Failure(ex) =>
+        seller ! assets  // refund assets to seller
+        self ! PoisonPill
+    }
+    case Failure(exception) => {  // partial function for handling buyer response given failed seller response
+      case Success(payment) =>  // refund payment to buyer
+        buyer ! payment
+        self ! PoisonPill
+      case Failure(otherException) => // nothing to refund
+        self ! PoisonPill
+    }
   }
 
-  def securitiesReceived: Boolean = {
-    securities.isDefined
+  /** Behavior of a TransactionHandler after receiving the buyer's response.
+    *
+    * @param buyerResponse
+    * @return partial function that handles the seller's response.
+    */
+  def awaitingSellerResponse(buyerResponse: Try[Payment]): Receive = buyerResponse match {
+    case Success(payment) => {  // partial function for handling seller response given successful buyer response
+      case Success(assets) =>
+        log.info(s",${System.nanoTime()}" + transaction.toString)
+        buyer ! assets
+        seller ! payment
+        self ! PoisonPill
+      case Failure(exception) =>
+        buyer ! payment  // refund payment to buyer
+        self ! PoisonPill
+    }
+    case Failure(exception) => {  // partial function for handling seller response given failed buyer response
+      case Success(assets) =>  // refund assets to seller
+        seller ! assets
+        self ! PoisonPill
+      case Failure(otherException) =>  // nothing to refund
+        self ! PoisonPill
+    }
   }
 
+  /** Behavior of a TransactionHandler.
+   *
+   * @return partial function that handles buyer and seller responses.
+   */
   def receive: Receive = {
-    case fill: FillLike =>
-      seller = fill.askTradingPartyRef; buyer = fill.bidTradingPartyRef
-      seller ! RequestAssets(fill.instrument, fill.quantity)
-      buyer ! RequestPayment(fill.price * fill.quantity)
-    case Payment(amount) =>
-      payment = Some(Payment(amount))
-      if (securitiesReceived) {
-        buyer ! securities.get
-        seller ! payment.get
-        context.stop(self)
-      }
-    case Assets(instrument, quantity) =>
-      securities = Some(Assets(instrument, quantity))
-      if (paymentReceived) {
-        buyer ! securities.get
-        seller ! payment.get
-        context.stop(self)
-      }
+
+    case Success(Payment(amount)) =>
+      context.become(awaitingSellerResponse(Success(Payment(amount))))
+    case Failure(InsufficientFundsException(msg)) =>
+      context.become(awaitingSellerResponse(Failure(InsufficientFundsException(msg))))
+    case Success(Assets(tradable, quantity)) =>
+      context.become(awaitingBuyerResponse(Success(Assets(tradable, quantity))))
+    case Failure(InsufficientAssetsException(msg)) =>
+      context.become(awaitingBuyerResponse(Failure(InsufficientAssetsException(msg))))
+
   }
 
 }

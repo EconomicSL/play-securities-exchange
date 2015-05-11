@@ -17,17 +17,14 @@ limitations under the License.
 package models
 
 
-case class SecuritiesMarket(instrument: SecurityLike) extends MarketLike
-  with AuctionMechanismProvider
-  with ClearingMechanismProvider {
+/** Represents a cleared transaction between a buyer and a seller. */
+case class Transaction(fill: FillLike) {
 
-  def receive: Receive = {
-    case order: OrderLike => auctionMechanism forward order
-      log.info(s",${System.nanoTime()}" + order.toString)
-    case fill: FillLike =>
-      log.info(s",${System.nanoTime()}" + fill.toString)
-      clearingMechanism forward fill
+  override def toString: String = {
+    s",${fill.askTradingPartyRef.path.name}," +
+    s"${fill.bidTradingPartyRef.path.name}," +
+    s"$getClass,${fill.instrument}," +
+    s"${fill.price},${fill.quantity}"
   }
 
 }
-

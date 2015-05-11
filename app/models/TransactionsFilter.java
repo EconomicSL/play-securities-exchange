@@ -14,20 +14,22 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package models
+package models;
+
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.filter.Filter;
+import ch.qos.logback.core.spi.FilterReply;
 
 
-case class SecuritiesMarket(instrument: SecurityLike) extends MarketLike
-  with AuctionMechanismProvider
-  with ClearingMechanismProvider {
+public class TransactionsFilter extends Filter<ILoggingEvent> {
 
-  def receive: Receive = {
-    case order: OrderLike => auctionMechanism forward order
-      log.info(s",${System.nanoTime()}" + order.toString)
-    case fill: FillLike =>
-      log.info(s",${System.nanoTime()}" + fill.toString)
-      clearingMechanism forward fill
-  }
-
+    @Override
+    public FilterReply decide(ILoggingEvent event) {
+        boolean isTransaction = event.getFormattedMessage().contains("Transaction");
+        if ( isTransaction ) {
+            return FilterReply.ACCEPT;
+        } else {
+            return FilterReply.DENY;
+        }
+    }
 }
-

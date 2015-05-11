@@ -17,11 +17,24 @@
         </encoder>
     </appender>
 
+    <appender name="TRANSACTIONS" class="ch.qos.logback.core.FileAppender">
+        <filter class="models.TransactionsFilter" />
+        <file>logs/transactions.log</file>
+        <append>false</append>
+        <encoder>
+            <pattern>%date{yyyy-MM-dd} %X{akkaTimestamp} %-5level[%thread] %logger{1} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
     <root level="INFO">
         <appender-ref ref="FILLS" />
     </root>
     <root level="INFO">
         <appender-ref ref="ORDERS" />
+    </root>
+
+    <root level="INFO">
+        <appender-ref ref="TRANSACTIONS" />
     </root>
 
 </configuration>
