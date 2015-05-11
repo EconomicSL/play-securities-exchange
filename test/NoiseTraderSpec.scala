@@ -3,7 +3,7 @@ import akka.testkit.{ImplicitSender, TestProbe, TestActorRef, TestKit}
 import models._
 import org.scalatest.{BeforeAndAfterAll, FeatureSpecLike, GivenWhenThen, Matchers}
 
-import scala.util.{Success, Random}
+import scala.util.{Failure, Success, Random}
 
 
 class NoiseTraderSpec extends TestKit(ActorSystem("NoiseTraderSpec")) with
@@ -163,7 +163,7 @@ class NoiseTraderSpec extends TestKit(ActorSystem("NoiseTraderSpec")) with
 
   feature("NoiseTrader should be able to process requests for payment and assets.") {
 
-    scenario("NoiseTrader receives PaymentRequest.") {
+    scenario("NoiseTrader receives an affordable PaymentRequest.") {
 
       val market = TestProbe()
       val noiseTraderRef = TestActorRef(generateNoiseTrader(market.ref))
@@ -173,7 +173,7 @@ class NoiseTraderSpec extends TestKit(ActorSystem("NoiseTraderSpec")) with
       val initalCashHoldings = Assets(Currency, 1e6)
       noiseTraderRef ! Assets(Currency, 1e6)
 
-      When("NoiseTrader receives an affordable PaymentRequest")
+      When("NoiseTrader receives a PaymentRequest")
 
       val paymentRequest = PaymentRequest(generateRandomAmount(initalCashHoldings.quantity))
       noiseTraderRef ! paymentRequest
@@ -188,7 +188,32 @@ class NoiseTraderSpec extends TestKit(ActorSystem("NoiseTraderSpec")) with
 
     }
 
-    scenario("NoiseTrader receives AssetsRequest") {
+    scenario("NoiseTrader receives an unaffordable PaymentRequest.") {
+
+      val market = TestProbe()
+      val noiseTraderRef = TestActorRef(generateNoiseTrader(market.ref))
+      val noiseTrader =  noiseTraderRef.underlyingActor
+
+      // send the trader some cash
+      val initialCashHoldings = Assets(Currency, 1e6)
+      noiseTraderRef ! Assets(Currency, 1e6)
+
+      When("NoiseTrader receives a PaymentRequest")
+
+      val paymentRequest = PaymentRequest((1 + Random.nextDouble()) * initialCashHoldings.quantity)
+      noiseTraderRef ! paymentRequest
+
+      Then("NoiseTrader does not decrement its cash holdings and")
+
+      noiseTrader.assets(Currency) should be (initialCashHoldings.quantity)
+
+      Then("NoiseTrader sends an InsufficientFundsException.")
+
+      expectMsg(Failure(InsufficientFundsException()))
+
+    }
+
+    scenario("NoiseTrader receives feasible AssetsRequest") {
 
       val market = TestProbe()
       val noiseTraderRef = TestActorRef(generateNoiseTrader(market.ref))
@@ -209,6 +234,30 @@ class NoiseTraderSpec extends TestKit(ActorSystem("NoiseTraderSpec")) with
       Then("NoiseTrader sends Assets.")
 
       expectMsg(Success(Assets(initialAssetHoldings.instrument, assetsRequest.quantity)))
+
+    }
+
+    scenario("NoiseTrader receives infeasible AssetsRequest") {
+
+      val market = TestProbe()
+      val noiseTraderRef = TestActorRef(generateNoiseTrader(market.ref))
+      val noiseTrader =  noiseTraderRef.underlyingActor
+
+      val initialAssetHoldings = generateRandomAsset("GOOG")
+      noiseTraderRef ! initialAssetHoldings
+
+      When("NoiseTrader receives an infeasible AssetsRequest")
+
+      val assetsRequest = AssetsRequest(initialAssetHoldings.instrument, (1 + Random.nextDouble()) * initialAssetHoldings.quantity)
+      noiseTraderRef ! assetsRequest
+
+      Then("NoiseTrader does not decrement its asset holdings and")
+
+      noiseTrader.assets(initialAssetHoldings.instrument) should be (initialAssetHoldings.quantity)
+
+      Then("NoiseTrader sends an InsufficientAssets exception.")
+
+      expectMsg(Failure(InsufficientAssetsException()))
 
     }
 
