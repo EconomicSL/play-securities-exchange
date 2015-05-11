@@ -330,7 +330,7 @@ class TransactionHandlerSpec extends TestKit(ActorSystem("TransactionHandlerSpec
 
       transactionHandlerRef ! Failure(InsufficientAssetsException())
 
-      Then("TransactionHandler should die.")
+      Then("TransactionHandler should not send any messages.")
 
       askTradingParty.expectNoMsg()
       bidTradingParty.expectNoMsg()
