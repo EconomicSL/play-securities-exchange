@@ -84,12 +84,12 @@ class TransactionHandler(fill: FillLike) extends Actor
         seller ! payment
         self ! PoisonPill
       case Failure(exception) =>
-        seller ! payment  // refund payment to buyer
+        buyer ! payment  // refund payment to buyer
         self ! PoisonPill
     }
     case Failure(exception) => {  // partial function for handling seller response given failed buyer response
       case Success(assets) =>  // refund assets to seller
-        buyer ! assets
+        seller ! assets
         self ! PoisonPill
       case Failure(otherException) =>  // nothing to refund
         self ! PoisonPill
