@@ -18,47 +18,44 @@ package models
 
 import scala.collection.mutable
 
+
 /** Basic representation of an order book.
   *
   * The order book trait is designed to be mixed in with AskBook and BidBook.
   *
   */
-sealed trait OrderBookLike {
+sealed trait OrderBookLike[T <: OrderLike] {
 
-  def instrument: AssetLike
-
+  /** The best limit order currently in the book. */
   def bestLimitOrder: Option[LimitPriceLike]
 
+  /** The order bok. */
+  def orderBook: mutable.PriorityQueue[T]
+
+  def tradable: AssetLike
+
 }
 
 
-case class AskOrderBook(instrument: SecurityLike) extends
-  mutable.PriorityQueue[AskOrderLike] with
-  OrderBookLike {
+case class AskOrderBook(tradable: SecurityLike) extends OrderBookLike[AskOrderLike] {
 
   def bestLimitOrder: Option[LimitAskOrder] = {
-    val bestLimitAskOrder = this find(_.isInstanceOf[LimitAskOrder])
-
-    bestLimitAskOrder match {
-      case Some(ask: LimitAskOrder) => Some(ask)
-      case None => None
-    }
+    val bestLimitAskOrder = orderBook.find(order => order.isInstanceOf[LimitAskOrder])
+    bestLimitAskOrder.asInstanceOf[Option[LimitAskOrder]]
   }
+
+  val orderBook = mutable.PriorityQueue[AskOrderLike]()
 
 }
 
 
-case class BidOrderBook(instrument: SecurityLike) extends
-  mutable.PriorityQueue[BidOrderLike] with
-  OrderBookLike {
+case class BidOrderBook(tradable: SecurityLike) extends OrderBookLike[BidOrderLike] {
 
   def bestLimitOrder: Option[LimitBidOrder] = {
-    val bestLimitOrderBid = this find(_.isInstanceOf[LimitBidOrder])
-
-    bestLimitOrderBid match {
-      case Some(bid: LimitBidOrder) => Some(bid)
-      case None => None
-    }
+    val bestLimitBidOrder = orderBook.find(order => order.isInstanceOf[LimitBidOrder])
+    bestLimitBidOrder.asInstanceOf[Option[LimitBidOrder]]
   }
+
+  val orderBook = mutable.PriorityQueue[BidOrderLike]()
 
 }

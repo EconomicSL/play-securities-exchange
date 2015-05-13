@@ -19,11 +19,13 @@ package models
 
 trait MatchingEngineLike {
 
-  def askOrderBook: AskOrderBook
+  /** Collection of ask orders submitted by actors wishing to sell a tradable. */
+  def askOrders: AskOrderBook
 
-  def bidOrderBook: BidOrderBook
+  /** Collection of bid orders submitted by actors wishing to buy a tradable. */
+  def bidOrders: BidOrderBook
 
-  def instrument: AssetLike
+  def tradable: AssetLike
 
   def referencePrice: Option[Double]
 

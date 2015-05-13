@@ -1,3 +1,5 @@
+import java.util.UUID
+
 import akka.actor.{Props, ActorSystem}
 import akka.testkit.{TestProbe, TestKit, TestActorRef}
 import models._
@@ -39,26 +41,26 @@ class DoubleAuctionMechanismSpec extends TestKit(ActorSystem("Securities-Exchang
 
       val askPrice = generateRandomPrice()
       val askQuantity = generateRandomQuantity()
-      val ask1 = LimitAskOrder(seller, testInstrument, askPrice, askQuantity)
+      val ask1 = LimitAskOrder(UUID.randomUUID(), seller, testInstrument, askPrice, askQuantity)
       auctionMechanismRef ! ask1
 
       When("a limit order bid is received that does not cross the existing limit order ask")
 
       val bidPrice = generateRandomPrice(askPrice)
       val bidQuantity = generateRandomQuantity()
-      val bid1 = LimitBidOrder(buyer, testInstrument, bidPrice, bidQuantity)
+      val bid1 = LimitBidOrder(UUID.randomUUID(), buyer, testInstrument, bidPrice, bidQuantity)
       auctionMechanismRef ! bid1
 
       Then("both orders should remain on book")
       // ask order should remain on the book
-      auctionMechanism.askOrderBook.head should be(ask1)
+      auctionMechanism.askOrders.orderBook.head should be(ask1)
 
       // bid order should settle in the book
-      auctionMechanism.bidOrderBook.head should be(bid1)
+      auctionMechanism.bidOrders.orderBook.head should be(bid1)
 
       // clear the books prior to next scenario!
-      auctionMechanism.askOrderBook.clear()
-      auctionMechanism.bidOrderBook.clear()
+      auctionMechanism.askOrders.orderBook.clear()
+      auctionMechanism.bidOrders.orderBook.clear()
 
     }
 
@@ -71,20 +73,20 @@ class DoubleAuctionMechanismSpec extends TestKit(ActorSystem("Securities-Exchang
 
       val askPrice = generateRandomPrice()
       val askQuantity = generateRandomQuantity()
-      val ask1 = LimitAskOrder(seller, testInstrument, askPrice, askQuantity)
+      val ask1 = LimitAskOrder(UUID.randomUUID(), seller, testInstrument, askPrice, askQuantity)
       auctionMechanismRef ! ask1
 
       When("a crossing limit order bid for the same quantity of shares is received")
 
       val bidPrice = (1 + Random.nextDouble()) * askPrice
-      val bid1 = LimitBidOrder(buyer, testInstrument, bidPrice, askQuantity)
+      val bid1 = LimitBidOrder(UUID.randomUUID(), buyer, testInstrument, bidPrice, askQuantity)
       auctionMechanismRef ! bid1
 
       Then("a single fill is generated and both order books should be empty")
 
       // both books should now be empty
-      auctionMechanism.askOrderBook.headOption should be(None)
-      auctionMechanism.bidOrderBook.headOption should be(None)
+      auctionMechanism.askOrders.orderBook.headOption should be(None)
+      auctionMechanism.bidOrders.orderBook.headOption should be(None)
 
     }
 
@@ -97,23 +99,23 @@ class DoubleAuctionMechanismSpec extends TestKit(ActorSystem("Securities-Exchang
 
       val askPrice = generateRandomPrice()
       val askQuantity = generateRandomQuantity()
-      val ask1 = LimitAskOrder(seller, testInstrument, askPrice, askQuantity)
+      val ask1 = LimitAskOrder(UUID.randomUUID(), seller, testInstrument, askPrice, askQuantity)
       auctionMechanismRef ! ask1
 
       When("a crossing limit order bid for a larger quantity of shares is received")
 
       val bidPrice = (1 + Random.nextDouble()) * askPrice
       val bidQuantity = generateRandomQuantity() + askQuantity
-      val bid1 = LimitBidOrder(buyer, testInstrument, bidPrice, bidQuantity)
+      val bid1 = LimitBidOrder(UUID.randomUUID(), buyer, testInstrument, bidPrice, bidQuantity)
       auctionMechanismRef ! bid1
 
       Then("a single partial fill is generated and a residual bid order remains on book.")
 
       val residualQuantity = bidQuantity - askQuantity
       val residualBid = bid1.split(residualQuantity)
-      auctionMechanism.askOrderBook.headOption should be(None)
-      auctionMechanism.bidOrderBook.head should be(residualBid)
-      auctionMechanism.bidOrderBook.clear()
+      auctionMechanism.askOrders.orderBook.headOption should be(None)
+      auctionMechanism.bidOrders.orderBook.head should be(residualBid)
+      auctionMechanism.bidOrders.orderBook.clear()
 
     }
 
@@ -126,23 +128,23 @@ class DoubleAuctionMechanismSpec extends TestKit(ActorSystem("Securities-Exchang
 
       val askPrice = generateRandomPrice()
       val askQuantity = generateRandomQuantity()
-      val ask1 = LimitAskOrder(seller, testInstrument, askPrice, askQuantity)
+      val ask1 = LimitAskOrder(UUID.randomUUID(), seller, testInstrument, askPrice, askQuantity)
       auctionMechanismRef ! ask1
 
       When("a crossing limit order bid for a smaller quantity of shares is received")
 
       val bidPrice = (1 + Random.nextDouble()) * askPrice
       val bidQuantity = askQuantity - generateRandomQuantity(askQuantity)
-      val bid1 = LimitBidOrder(buyer, testInstrument, bidPrice, bidQuantity)
+      val bid1 = LimitBidOrder(UUID.randomUUID(), buyer, testInstrument, bidPrice, bidQuantity)
       auctionMechanismRef ! bid1
 
       Then("a single partial fill is generated and a residual ask order remains on book.")
 
       val residualQuantity = askQuantity - bidQuantity
       val residualAsk = ask1.split(residualQuantity)
-      auctionMechanism.askOrderBook.head should be(residualAsk)
-      auctionMechanism.bidOrderBook.headOption should be(None)
-      auctionMechanism.askOrderBook.clear()
+      auctionMechanism.askOrders.orderBook.head should be(residualAsk)
+      auctionMechanism.bidOrders.orderBook.headOption should be(None)
+      auctionMechanism.askOrders.orderBook.clear()
 
     }
 
@@ -156,25 +158,25 @@ class DoubleAuctionMechanismSpec extends TestKit(ActorSystem("Securities-Exchang
 
       val askPrice1 = generateRandomPrice()
       val askQuantity1 = generateRandomQuantity()
-      val ask1 = LimitAskOrder(seller1, testInstrument, askPrice1, askQuantity1)
+      val ask1 = LimitAskOrder(UUID.randomUUID(), seller1, testInstrument, askPrice1, askQuantity1)
       auctionMechanismRef ! ask1
 
       val askPrice2 = (1 + Random.nextDouble()) * askPrice1
       val askQuantity2 = generateRandomQuantity()
-      val ask2 = LimitAskOrder(seller2, testInstrument, askPrice2, askQuantity2)
+      val ask2 = LimitAskOrder(UUID.randomUUID(), seller2, testInstrument, askPrice2, askQuantity2)
       auctionMechanismRef ! ask2
 
       When("a limit order bid for the total quantity of shares in both ask orders is received")
 
       val bidPrice = (1 + Random.nextDouble()) * askPrice2
       val bidQuantity = askQuantity1 + askQuantity2
-      val bid1 = LimitBidOrder(buyer, testInstrument, bidPrice, bidQuantity)
+      val bid1 = LimitBidOrder(UUID.randomUUID(), buyer, testInstrument, bidPrice, bidQuantity)
       auctionMechanismRef ! bid1
 
       Then("both order books should be empty.")
 
-      auctionMechanism.askOrderBook.headOption should be(None)
-      auctionMechanism.bidOrderBook.headOption should be(None)
+      auctionMechanism.askOrders.orderBook.headOption should be(None)
+      auctionMechanism.bidOrders.orderBook.headOption should be(None)
 
     }
 
@@ -188,12 +190,12 @@ class DoubleAuctionMechanismSpec extends TestKit(ActorSystem("Securities-Exchang
 
       val askPrice1 = generateRandomPrice()
       val askQuantity1 = generateRandomQuantity()
-      val ask1 = LimitAskOrder(seller1, testInstrument, askPrice1, askQuantity1)
+      val ask1 = LimitAskOrder(UUID.randomUUID(), seller1, testInstrument, askPrice1, askQuantity1)
       auctionMechanismRef ! ask1
 
       val askPrice2 = (1 + Random.nextDouble()) * askPrice1
       val askQuantity2 = generateRandomQuantity()
-      val ask2 = LimitAskOrder(seller2, testInstrument, askPrice2, askQuantity2)
+      val ask2 = LimitAskOrder(UUID.randomUUID(), seller2, testInstrument, askPrice2, askQuantity2)
       auctionMechanismRef ! ask2
 
       When("a limit order bid for more than the total quantity of shares in both ask orders is received")
@@ -201,21 +203,21 @@ class DoubleAuctionMechanismSpec extends TestKit(ActorSystem("Securities-Exchang
       val bidPrice = (1 + Random.nextDouble()) * askPrice2
       val totalAskQuantity = askQuantity1 + askQuantity2
       val bidQuantity = generateRandomQuantity(totalAskQuantity) + totalAskQuantity
-      val bid1 = LimitBidOrder(buyer, testInstrument, bidPrice, bidQuantity)
+      val bid1 = LimitBidOrder(UUID.randomUUID(), buyer, testInstrument, bidPrice, bidQuantity)
       auctionMechanismRef ! bid1
 
       Then("one partial fill and one total fill should be generated")
 
       Then("the ask order book should be empty")
 
-      auctionMechanism.askOrderBook.headOption should be(None)
+      auctionMechanism.askOrders.orderBook.headOption should be(None)
 
       Then("the bid order book should contain a residual bid.")
 
       val residualQuantity = bidQuantity - totalAskQuantity
       val residualBid = bid1.split(residualQuantity)
-      auctionMechanism.bidOrderBook.head should be(residualBid)
-      auctionMechanism.bidOrderBook.clear()
+      auctionMechanism.bidOrders.orderBook.head should be(residualBid)
+      auctionMechanism.bidOrders.orderBook.clear()
 
     }
 
@@ -229,34 +231,34 @@ class DoubleAuctionMechanismSpec extends TestKit(ActorSystem("Securities-Exchang
 
       val askPrice1 = generateRandomPrice()
       val askQuantity1 = generateRandomQuantity()
-      val ask1 = LimitAskOrder(seller1, testInstrument, askPrice1, askQuantity1)
+      val ask1 = LimitAskOrder(UUID.randomUUID(), seller1, testInstrument, askPrice1, askQuantity1)
       auctionMechanismRef ! ask1
 
       val askPrice2 = (1 + Random.nextDouble()) * askPrice1
       val askQuantity2 = generateRandomQuantity()
-      val ask2 = LimitAskOrder(seller2, testInstrument, askPrice2, askQuantity2)
+      val ask2 = LimitAskOrder(UUID.randomUUID(), seller2, testInstrument, askPrice2, askQuantity2)
       auctionMechanismRef ! ask2
 
       When("a limit order bid for less than the total quantity of shares in both ask orders is received")
 
       val bidPrice = (1 + Random.nextDouble()) * askPrice2
       val bidQuantity = askQuantity1 + generateRandomQuantity(askQuantity2)
-      val bid1 = LimitBidOrder(buyer, testInstrument, bidPrice, bidQuantity)
+      val bid1 = LimitBidOrder(UUID.randomUUID(), buyer, testInstrument, bidPrice, bidQuantity)
       auctionMechanismRef ! bid1
 
       Then("a single partial fill is generated at the limit order bid price")
 
       Then("the bid order book should be empty")
 
-      auctionMechanism.bidOrderBook.headOption should be(None)
+      auctionMechanism.bidOrders.orderBook.headOption should be(None)
 
       Then("the ask order book should contain a residual ask.")
 
       val residualBidQuantity = bidQuantity - askQuantity1
       val residualQuantity = askQuantity2 - residualBidQuantity
       val residualAsk = ask2.split(residualQuantity)
-      auctionMechanism.askOrderBook.head should be(residualAsk)
-      auctionMechanism.askOrderBook.clear()
+      auctionMechanism.askOrders.orderBook.head should be(residualAsk)
+      auctionMechanism.askOrders.orderBook.clear()
 
     }
 
@@ -269,20 +271,20 @@ class DoubleAuctionMechanismSpec extends TestKit(ActorSystem("Securities-Exchang
 
       val bidPrice = generateRandomPrice()
       val bidQuantity = generateRandomQuantity()
-      val bid1 = LimitBidOrder(buyer, testInstrument, bidPrice, bidQuantity)
+      val bid1 = LimitBidOrder(UUID.randomUUID(), buyer, testInstrument, bidPrice, bidQuantity)
       auctionMechanismRef ! bid1
 
       When("a crossing limit order ask for the same quantity of shares is received")
 
       val askPrice = Random.nextDouble() * bidPrice
-      val ask1 = LimitAskOrder(seller, testInstrument, askPrice, bidQuantity)
+      val ask1 = LimitAskOrder(UUID.randomUUID(), seller, testInstrument, askPrice, bidQuantity)
       auctionMechanismRef ! ask1
 
       Then("a single total fill is generated at the limit order bid price.")
 
       // both books should now be empty
-      auctionMechanism.askOrderBook.headOption should be(None)
-      auctionMechanism.bidOrderBook.headOption should be(None)
+      auctionMechanism.askOrders.orderBook.headOption should be(None)
+      auctionMechanism.bidOrders.orderBook.headOption should be(None)
 
     }
 
@@ -295,23 +297,23 @@ class DoubleAuctionMechanismSpec extends TestKit(ActorSystem("Securities-Exchang
 
       val bidPrice = generateRandomPrice()
       val bidQuantity = generateRandomQuantity()
-      val bid1 = LimitBidOrder(buyer, testInstrument, bidPrice, bidQuantity)
+      val bid1 = LimitBidOrder(UUID.randomUUID(), buyer, testInstrument, bidPrice, bidQuantity)
       auctionMechanismRef ! bid1
 
       When("a crossing limit order ask for a larger quantity of shares is received")
 
       val askPrice = generateRandomPrice(bidPrice)
       val askQuantity = bidQuantity + generateRandomQuantity()
-      val ask1 = LimitAskOrder(seller, testInstrument, askPrice, askQuantity)
+      val ask1 = LimitAskOrder(UUID.randomUUID(), seller, testInstrument, askPrice, askQuantity)
       auctionMechanismRef ! ask1
 
       Then("a single partial fill is generated and a residual ask order remains on book.")
 
       val residualQuantity = askQuantity - bidQuantity
       val residualAsk = ask1.split(residualQuantity)
-      auctionMechanism.askOrderBook.head should be(residualAsk)
-      auctionMechanism.bidOrderBook.headOption should be(None)
-      auctionMechanism.askOrderBook.clear()
+      auctionMechanism.askOrders.orderBook.head should be(residualAsk)
+      auctionMechanism.bidOrders.orderBook.headOption should be(None)
+      auctionMechanism.askOrders.orderBook.clear()
 
     }
 
@@ -324,23 +326,23 @@ class DoubleAuctionMechanismSpec extends TestKit(ActorSystem("Securities-Exchang
 
       val bidPrice = generateRandomPrice()
       val bidQuantity = generateRandomQuantity()
-      val bid1 = LimitBidOrder(buyer, testInstrument, bidPrice, bidQuantity)
+      val bid1 = LimitBidOrder(UUID.randomUUID(), buyer, testInstrument, bidPrice, bidQuantity)
       auctionMechanismRef ! bid1
 
       When("a crossing limit order ask for a smaller quantity of shares is received")
 
       val askPrice = generateRandomPrice(bidPrice)
       val askQuantity = bidQuantity - generateRandomQuantity(bidQuantity)
-      val ask1 = LimitAskOrder(seller, testInstrument, askPrice, askQuantity)
+      val ask1 = LimitAskOrder(UUID.randomUUID(), seller, testInstrument, askPrice, askQuantity)
       auctionMechanismRef ! ask1
 
       Then("a single partial fill is generated and a residual bid order remains on book.")
 
       val residualQuantity = bidQuantity - askQuantity
       val residualBid = bid1.split(residualQuantity)
-      auctionMechanism.askOrderBook.headOption should be(None)
-      auctionMechanism.bidOrderBook.head should be(residualBid)
-      auctionMechanism.bidOrderBook.clear()
+      auctionMechanism.askOrders.orderBook.headOption should be(None)
+      auctionMechanism.bidOrders.orderBook.head should be(residualBid)
+      auctionMechanism.bidOrders.orderBook.clear()
 
     }
 
@@ -354,27 +356,27 @@ class DoubleAuctionMechanismSpec extends TestKit(ActorSystem("Securities-Exchang
 
       val bidPrice1 = generateRandomPrice()
       val bidQuantity1 = generateRandomQuantity()
-      val bid1 = LimitBidOrder(buyer1, testInstrument, bidPrice1, bidQuantity1)
+      val bid1 = LimitBidOrder(UUID.randomUUID(), buyer1, testInstrument, bidPrice1, bidQuantity1)
       auctionMechanismRef ! bid1
 
       val bidPrice2 = (1 + generateRandomPrice()) * bidPrice1
       val bidQuantity2 = generateRandomQuantity()
-      val bid2 = LimitBidOrder(buyer2, testInstrument, bidPrice2, bidQuantity2)
+      val bid2 = LimitBidOrder(UUID.randomUUID(), buyer2, testInstrument, bidPrice2, bidQuantity2)
       auctionMechanismRef ! bid2
 
       When("a limit order ask for the total quantity of shares in both bid orders is received")
 
       val askPrice = generateRandomPrice(bidPrice1)
       val askQuantity = bidQuantity1 + bidQuantity2
-      val ask1 = LimitAskOrder(seller, testInstrument, askPrice, askQuantity)
+      val ask1 = LimitAskOrder(UUID.randomUUID(), seller, testInstrument, askPrice, askQuantity)
       auctionMechanismRef ! ask1
 
       Then("one partial fill and one total fill should be generated")
 
       Then("both the ask and the bid order books should be empty.")
 
-      auctionMechanism.askOrderBook.headOption should be(None)
-      auctionMechanism.bidOrderBook.headOption should be(None)
+      auctionMechanism.askOrders.orderBook.headOption should be(None)
+      auctionMechanism.bidOrders.orderBook.headOption should be(None)
 
     }
 
@@ -388,12 +390,12 @@ class DoubleAuctionMechanismSpec extends TestKit(ActorSystem("Securities-Exchang
 
       val bidPrice1 = generateRandomPrice()
       val bidQuantity1 = generateRandomQuantity()
-      val bid1 = LimitBidOrder(buyer1, testInstrument, bidPrice1, bidQuantity1)
+      val bid1 = LimitBidOrder(UUID.randomUUID(), buyer1, testInstrument, bidPrice1, bidQuantity1)
       auctionMechanismRef ! bid1
 
       val bidPrice2 = generateRandomPrice(bidPrice1)
       val bidQuantity2 = generateRandomQuantity()
-      val bid2 = LimitBidOrder(buyer2, testInstrument, bidPrice2, bidQuantity2)
+      val bid2 = LimitBidOrder(UUID.randomUUID(), buyer2, testInstrument, bidPrice2, bidQuantity2)
       auctionMechanismRef ! bid2
 
       When("a limit order ask for more than the total quantity of shares in both bid orders is received")
@@ -401,21 +403,21 @@ class DoubleAuctionMechanismSpec extends TestKit(ActorSystem("Securities-Exchang
       val askPrice = generateRandomPrice(bidPrice2)
       val totalBidQuantity = bidQuantity1 + bidQuantity2
       val askQuantity = totalBidQuantity + generateRandomQuantity()
-      val ask1 = LimitAskOrder(seller, testInstrument, askPrice, askQuantity)
+      val ask1 = LimitAskOrder(UUID.randomUUID(), seller, testInstrument, askPrice, askQuantity)
       auctionMechanismRef ! ask1
 
       Then("two partial fills should be generated")
 
       Then("the bid order book should be empty")
 
-      auctionMechanism.bidOrderBook.headOption should be(None)
+      auctionMechanism.bidOrders.orderBook.headOption should be(None)
 
       Then("the ask order book should contain a residual ask.")
 
       val residualQuantity = askQuantity - totalBidQuantity
       val residualAsk = ask1.split(residualQuantity)
-      auctionMechanism.askOrderBook.head should be(residualAsk)
-      auctionMechanism.askOrderBook.clear()
+      auctionMechanism.askOrders.orderBook.head should be(residualAsk)
+      auctionMechanism.askOrders.orderBook.clear()
 
     }
 
@@ -429,34 +431,34 @@ class DoubleAuctionMechanismSpec extends TestKit(ActorSystem("Securities-Exchang
 
       val bidPrice1 = generateRandomPrice()
       val bidQuantity1 = generateRandomQuantity()
-      val bid1 = LimitBidOrder(buyer1, testInstrument, bidPrice1, bidQuantity1)
+      val bid1 = LimitBidOrder(UUID.randomUUID(), buyer1, testInstrument, bidPrice1, bidQuantity1)
       auctionMechanismRef ! bid1
 
       val bidPrice2 = generateRandomPrice(bidPrice1)
       val bidQuantity2 = generateRandomQuantity()
-      val bid2 = LimitBidOrder(buyer2, testInstrument, bidPrice2, bidQuantity2)
+      val bid2 = LimitBidOrder(UUID.randomUUID(), buyer2, testInstrument, bidPrice2, bidQuantity2)
       auctionMechanismRef ! bid2
 
       When("a limit order ask for less than the total quantity of shares in both bid orders is received")
 
       val askPrice = generateRandomPrice(bidPrice2)
       val askQuantity = bidQuantity1 + generateRandomQuantity(bidQuantity2)
-      val ask1 = LimitAskOrder(seller, testInstrument, askPrice, askQuantity)
+      val ask1 = LimitAskOrder(UUID.randomUUID(), seller, testInstrument, askPrice, askQuantity)
       auctionMechanismRef ! ask1
 
       Then("two partial fills should be generated")
 
       Then("the ask order book should be empty")
 
-      auctionMechanism.askOrderBook.headOption should be(None)
+      auctionMechanism.askOrders.orderBook.headOption should be(None)
 
       Then("the bid order book should contain a residual bid.")
 
       val residualAskQuantity = askQuantity - bidQuantity1
       val residualQuantity = bidQuantity2 - residualAskQuantity
       val residualBid = bid2.split(residualQuantity)
-      auctionMechanism.bidOrderBook.head should be(residualBid)
-      auctionMechanism.bidOrderBook.clear()
+      auctionMechanism.bidOrders.orderBook.head should be(residualBid)
+      auctionMechanism.bidOrders.orderBook.clear()
 
     }
 
@@ -477,13 +479,13 @@ class DoubleAuctionMechanismSpec extends TestKit(ActorSystem("Securities-Exchang
 
       val askPrice = generateRandomPrice()
       val askQuantity = generateRandomQuantity()
-      val ask1 = LimitAskOrder(seller, testInstrument, askPrice, askQuantity)
+      val ask1 = LimitAskOrder(UUID.randomUUID(), seller, testInstrument, askPrice, askQuantity)
       fabricatedMarket ! ask1
 
       When("a crossing limit order bid for the same quantity of shares is received")
 
       val bidPrice = (1 + Random.nextDouble()) * askPrice
-      val bid1 = LimitBidOrder(buyer, testInstrument, bidPrice, askQuantity)
+      val bid1 = LimitBidOrder(UUID.randomUUID(), buyer, testInstrument, bidPrice, askQuantity)
       fabricatedMarket ! bid1
 
       Then("a single total fill is generated at the limit order ask price.")
@@ -507,14 +509,14 @@ class DoubleAuctionMechanismSpec extends TestKit(ActorSystem("Securities-Exchang
 
       val askPrice = generateRandomPrice()
       val askQuantity = generateRandomQuantity()
-      val ask1 = LimitAskOrder(seller, testInstrument, askPrice, askQuantity)
+      val ask1 = LimitAskOrder(UUID.randomUUID(), seller, testInstrument, askPrice, askQuantity)
       fabricatedMarket ! ask1
 
       When("a crossing limit order bid for a larger quantity of shares is received")
 
       val bidPrice = (1 + Random.nextDouble()) * askPrice
       val bidQuantity = generateRandomQuantity() + askQuantity
-      val bid1 = LimitBidOrder(buyer, testInstrument, bidPrice, bidQuantity)
+      val bid1 = LimitBidOrder(UUID.randomUUID(), buyer, testInstrument, bidPrice, bidQuantity)
       fabricatedMarket ! bid1
 
       Then("a single partial fill is generated at the limit order ask price")
@@ -539,14 +541,14 @@ class DoubleAuctionMechanismSpec extends TestKit(ActorSystem("Securities-Exchang
 
       val askPrice = generateRandomPrice()
       val askQuantity = generateRandomQuantity()
-      val ask1 = LimitAskOrder(seller, testInstrument, askPrice, askQuantity)
+      val ask1 = LimitAskOrder(UUID.randomUUID(), seller, testInstrument, askPrice, askQuantity)
       fabricatedMarket ! ask1
 
       When("a crossing limit order bid for a smaller quantity of shares is received")
 
       val bidPrice = (1 + Random.nextDouble()) * askPrice
       val bidQuantity = askQuantity - generateRandomQuantity(askQuantity)
-      val bid1 = LimitBidOrder(buyer, testInstrument, bidPrice, bidQuantity)
+      val bid1 = LimitBidOrder(UUID.randomUUID(), buyer, testInstrument, bidPrice, bidQuantity)
       fabricatedMarket ! bid1
 
       Then("a single partial fill is generated at the limit order ask price")
@@ -570,19 +572,19 @@ class DoubleAuctionMechanismSpec extends TestKit(ActorSystem("Securities-Exchang
 
       val askPrice1 = generateRandomPrice()
       val askQuantity1 = generateRandomQuantity()
-      val ask1 = LimitAskOrder(seller1, testInstrument, askPrice1, askQuantity1)
+      val ask1 = LimitAskOrder(UUID.randomUUID(), seller1, testInstrument, askPrice1, askQuantity1)
       fabricatedMarket ! ask1
 
       val askPrice2 = (1 + Random.nextDouble()) * askPrice1
       val askQuantity2 = generateRandomQuantity()
-      val ask2 = LimitAskOrder(seller2, testInstrument, askPrice2, askQuantity2)
+      val ask2 = LimitAskOrder(UUID.randomUUID(), seller2, testInstrument, askPrice2, askQuantity2)
       fabricatedMarket ! ask2
 
       When("a limit order bid for the total quantity of shares in both ask orders is received")
 
       val bidPrice = (1 + Random.nextDouble()) * askPrice2
       val bidQuantity = askQuantity1 + askQuantity2
-      val bid1 = LimitBidOrder(buyer, testInstrument, bidPrice, bidQuantity)
+      val bid1 = LimitBidOrder(UUID.randomUUID(), buyer, testInstrument, bidPrice, bidQuantity)
       fabricatedMarket ! bid1
 
       Then("one partial fill and one total fill should be generated")
@@ -608,12 +610,12 @@ class DoubleAuctionMechanismSpec extends TestKit(ActorSystem("Securities-Exchang
 
       val askPrice1 = generateRandomPrice()
       val askQuantity1 = generateRandomQuantity()
-      val ask1 = LimitAskOrder(seller1, testInstrument, askPrice1, askQuantity1)
+      val ask1 = LimitAskOrder(UUID.randomUUID(), seller1, testInstrument, askPrice1, askQuantity1)
       fabricatedMarket ! ask1
 
       val askPrice2 = (1 + Random.nextDouble()) * askPrice1
       val askQuantity2 = generateRandomQuantity()
-      val ask2 = LimitAskOrder(seller2, testInstrument, askPrice2, askQuantity2)
+      val ask2 = LimitAskOrder(UUID.randomUUID(), seller2, testInstrument, askPrice2, askQuantity2)
       fabricatedMarket ! ask2
 
       When("a limit order bid for more than the total quantity of shares in both ask orders is received")
@@ -621,7 +623,7 @@ class DoubleAuctionMechanismSpec extends TestKit(ActorSystem("Securities-Exchang
       val bidPrice = (1 + Random.nextDouble()) * askPrice2
       val totalAskQuantity = askQuantity1 + askQuantity2
       val bidQuantity = generateRandomQuantity(totalAskQuantity) + totalAskQuantity
-      val bid1 = LimitBidOrder(buyer, testInstrument, bidPrice, bidQuantity)
+      val bid1 = LimitBidOrder(UUID.randomUUID(), buyer, testInstrument, bidPrice, bidQuantity)
       fabricatedMarket ! bid1
 
       Then("two partial fills should be generated")
@@ -647,19 +649,19 @@ class DoubleAuctionMechanismSpec extends TestKit(ActorSystem("Securities-Exchang
 
       val askPrice1 = generateRandomPrice()
       val askQuantity1 = generateRandomQuantity()
-      val ask1 = LimitAskOrder(seller1, testInstrument, askPrice1, askQuantity1)
+      val ask1 = LimitAskOrder(UUID.randomUUID(), seller1, testInstrument, askPrice1, askQuantity1)
       fabricatedMarket ! ask1
 
       val askPrice2 = (1 + Random.nextDouble()) * askPrice1
       val askQuantity2 = generateRandomQuantity()
-      val ask2 = LimitAskOrder(seller2, testInstrument, askPrice2, askQuantity2)
+      val ask2 = LimitAskOrder(UUID.randomUUID(), seller2, testInstrument, askPrice2, askQuantity2)
       fabricatedMarket ! ask2
 
       When("a limit order bid for less than the total quantity of shares in both ask orders is received")
 
       val bidPrice = (1 + Random.nextDouble()) * askPrice2
       val bidQuantity = askQuantity1 + generateRandomQuantity(askQuantity2)
-      val bid1 = LimitBidOrder(buyer, testInstrument, bidPrice, bidQuantity)
+      val bid1 = LimitBidOrder(UUID.randomUUID(), buyer, testInstrument, bidPrice, bidQuantity)
       fabricatedMarket ! bid1
 
       Then("two partial fills should be generated")
@@ -689,13 +691,13 @@ class DoubleAuctionMechanismSpec extends TestKit(ActorSystem("Securities-Exchang
 
       val bidPrice = generateRandomPrice()
       val bidQuantity = generateRandomQuantity()
-      val bid1 = LimitBidOrder(buyer, testInstrument, bidPrice, bidQuantity)
+      val bid1 = LimitBidOrder(UUID.randomUUID(), buyer, testInstrument, bidPrice, bidQuantity)
       fabricatedMarket ! bid1
 
       When("a crossing limit order ask for the same quantity of shares is received")
 
       val askPrice = Random.nextDouble() * bidPrice
-      val ask1 = LimitAskOrder(seller, testInstrument, askPrice, bidQuantity)
+      val ask1 = LimitAskOrder(UUID.randomUUID(), seller, testInstrument, askPrice, bidQuantity)
       fabricatedMarket ! ask1
 
     }
@@ -713,14 +715,14 @@ class DoubleAuctionMechanismSpec extends TestKit(ActorSystem("Securities-Exchang
 
       val bidPrice = generateRandomPrice()
       val bidQuantity = generateRandomQuantity()
-      val bid1 = LimitBidOrder(buyer, testInstrument, bidPrice, bidQuantity)
+      val bid1 = LimitBidOrder(UUID.randomUUID(), buyer, testInstrument, bidPrice, bidQuantity)
       fabricatedMarket ! bid1
 
       When("a crossing limit order ask for a larger quantity of shares is received")
 
       val askPrice = generateRandomPrice(bidPrice)
       val askQuantity = bidQuantity + generateRandomQuantity()
-      val ask1 = LimitAskOrder(seller, testInstrument, askPrice, askQuantity)
+      val ask1 = LimitAskOrder(UUID.randomUUID(), seller, testInstrument, askPrice, askQuantity)
       fabricatedMarket ! ask1
 
       Then("a single partial fill is generated at the limit order bid price")
@@ -745,14 +747,14 @@ class DoubleAuctionMechanismSpec extends TestKit(ActorSystem("Securities-Exchang
 
       val bidPrice = generateRandomPrice()
       val bidQuantity = generateRandomQuantity()
-      val bid1 = LimitBidOrder(buyer, testInstrument, bidPrice, bidQuantity)
+      val bid1 = LimitBidOrder(UUID.randomUUID(), buyer, testInstrument, bidPrice, bidQuantity)
       fabricatedMarket ! bid1
 
       When("a crossing limit order ask for a smaller quantity of shares is received")
 
       val askPrice = generateRandomPrice(bidPrice)
       val askQuantity = bidQuantity - generateRandomQuantity(bidQuantity)
-      val ask1 = LimitAskOrder(seller, testInstrument, askPrice, askQuantity)
+      val ask1 = LimitAskOrder(UUID.randomUUID(), seller, testInstrument, askPrice, askQuantity)
       fabricatedMarket ! ask1
 
       Then("a single partial fill is generated at the limit order bid price")
@@ -776,19 +778,19 @@ class DoubleAuctionMechanismSpec extends TestKit(ActorSystem("Securities-Exchang
 
       val bidPrice1 = generateRandomPrice()
       val bidQuantity1 = generateRandomQuantity()
-      val bid1 = LimitBidOrder(buyer1, testInstrument, bidPrice1, bidQuantity1)
+      val bid1 = LimitBidOrder(UUID.randomUUID(), buyer1, testInstrument, bidPrice1, bidQuantity1)
       fabricatedMarket ! bid1
 
       val bidPrice2 = (1 + generateRandomPrice()) * bidPrice1
       val bidQuantity2 = generateRandomQuantity()
-      val bid2 = LimitBidOrder(buyer2, testInstrument, bidPrice2, bidQuantity2)
+      val bid2 = LimitBidOrder(UUID.randomUUID(), buyer2, testInstrument, bidPrice2, bidQuantity2)
       fabricatedMarket ! bid2
 
       When("a limit order ask for the total quantity of shares in both bid orders is received")
 
       val askPrice = generateRandomPrice(bidPrice1)
       val askQuantity = bidQuantity1 + bidQuantity2
-      val ask1 = LimitAskOrder(seller, testInstrument, askPrice, askQuantity)
+      val ask1 = LimitAskOrder(UUID.randomUUID(), seller, testInstrument, askPrice, askQuantity)
       fabricatedMarket ! ask1
 
       Then("one partial fill and one total fill should be generated")
@@ -814,12 +816,12 @@ class DoubleAuctionMechanismSpec extends TestKit(ActorSystem("Securities-Exchang
 
       val bidPrice1 = generateRandomPrice()
       val bidQuantity1 = generateRandomQuantity()
-      val bid1 = LimitBidOrder(buyer1, testInstrument, bidPrice1, bidQuantity1)
+      val bid1 = LimitBidOrder(UUID.randomUUID(), buyer1, testInstrument, bidPrice1, bidQuantity1)
       fabricatedMarket ! bid1
 
       val bidPrice2 = generateRandomPrice(bidPrice1)
       val bidQuantity2 = generateRandomQuantity()
-      val bid2 = LimitBidOrder(buyer2, testInstrument, bidPrice2, bidQuantity2)
+      val bid2 = LimitBidOrder(UUID.randomUUID(), buyer2, testInstrument, bidPrice2, bidQuantity2)
       fabricatedMarket ! bid2
 
       When("a limit order ask for more than the total quantity of shares in both bid orders is received")
@@ -827,7 +829,7 @@ class DoubleAuctionMechanismSpec extends TestKit(ActorSystem("Securities-Exchang
       val askPrice = generateRandomPrice(bidPrice2)
       val totalBidQuantity = bidQuantity1 + bidQuantity2
       val askQuantity = totalBidQuantity + generateRandomQuantity()
-      val ask1 = LimitAskOrder(seller, testInstrument, askPrice, askQuantity)
+      val ask1 = LimitAskOrder(UUID.randomUUID(), seller, testInstrument, askPrice, askQuantity)
       fabricatedMarket ! ask1
 
       Then("two partial fills should be generated")
@@ -853,19 +855,19 @@ class DoubleAuctionMechanismSpec extends TestKit(ActorSystem("Securities-Exchang
 
       val bidPrice1 = generateRandomPrice()
       val bidQuantity1 = generateRandomQuantity()
-      val bid1 = LimitBidOrder(buyer1, testInstrument, bidPrice1, bidQuantity1)
+      val bid1 = LimitBidOrder(UUID.randomUUID(), buyer1, testInstrument, bidPrice1, bidQuantity1)
       fabricatedMarket ! bid1
 
       val bidPrice2 = generateRandomPrice(bidPrice1)
       val bidQuantity2 = generateRandomQuantity()
-      val bid2 = LimitBidOrder(buyer2, testInstrument, bidPrice2, bidQuantity2)
+      val bid2 = LimitBidOrder(UUID.randomUUID(), buyer2, testInstrument, bidPrice2, bidQuantity2)
       fabricatedMarket ! bid2
 
       When("a limit order ask for less than the total quantity of shares in both bid orders is received")
 
       val askPrice = generateRandomPrice(bidPrice2)
       val askQuantity = bidQuantity1 + generateRandomQuantity(bidQuantity2)
-      val ask1 = LimitAskOrder(seller, testInstrument, askPrice, askQuantity)
+      val ask1 = LimitAskOrder(UUID.randomUUID(), seller, testInstrument, askPrice, askQuantity)
       fabricatedMarket ! ask1
 
       Then("two partial fills should be generated")

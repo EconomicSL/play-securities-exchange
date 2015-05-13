@@ -1,3 +1,5 @@
+import java.util.UUID
+
 import akka.actor.ActorSystem
 import akka.testkit.{TestProbe, TestKit, TestActorRef}
 import models._
@@ -38,13 +40,13 @@ class SecuritiesMarketSpec extends TestKit(ActorSystem("Securities-Market-Spec")
 
       val askPrice = generateRandomPrice()
       val askQuantity = generateRandomQuantity()
-      val ask1 = LimitAskOrder(seller.ref, testInstrument, askPrice, askQuantity)
+      val ask1 = LimitAskOrder(UUID.randomUUID(), seller.ref, testInstrument, askPrice, askQuantity)
       securitiesMarket ! ask1
 
       When("a crossing limit order bid for the same quantity of shares is received")
 
       val bidPrice = (1 + Random.nextDouble()) * askPrice
-      val bid1 = LimitBidOrder(buyer.ref, testInstrument, bidPrice, askQuantity)
+      val bid1 = LimitBidOrder(UUID.randomUUID(), buyer.ref, testInstrument, bidPrice, askQuantity)
       securitiesMarket ! bid1
 
       Then("the buyer should receive securities and the seller should receive payment.")

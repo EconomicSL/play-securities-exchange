@@ -28,13 +28,13 @@ object DoubleAuctionMechanism {
 }
 
 
-case class DoubleAuctionMechanism(instrument: SecurityLike) extends Actor
+case class DoubleAuctionMechanism(tradable: SecurityLike) extends Actor
   with ActorLogging
   with MatchingEngineLike {
 
-  val askOrderBook: AskOrderBook = AskOrderBook(instrument)
+  val askOrders: AskOrderBook = AskOrderBook(tradable)
 
-  val bidOrderBook: BidOrderBook = BidOrderBook(instrument)
+  val bidOrders: BidOrderBook = BidOrderBook(tradable)
 
   var referencePrice: Option[Double] = None
 
@@ -55,14 +55,14 @@ case class DoubleAuctionMechanism(instrument: SecurityLike) extends Actor
     * @param incoming an incoming Bid order
     */
   def tryFindMatchingAsk(incoming: BidOrderLike): Unit = {
-    askOrderBook.headOption match {
+    askOrders.orderBook.headOption match {
       case Some(topAsk) =>
         if (incoming.crosses(topAsk)) {
           matchWithTopAsk(incoming)
         } else {
-          bidOrderBook += incoming
+          bidOrders.orderBook += incoming
         }
-      case None => bidOrderBook += incoming  // ask book might be empty!
+      case None => bidOrders.orderBook += incoming  // ask book might be empty!
     }
   }
 
@@ -75,14 +75,14 @@ case class DoubleAuctionMechanism(instrument: SecurityLike) extends Actor
     * @param incoming an incoming Ask order
     */
   def tryFindMatchingBid(incoming: AskOrderLike): Unit = {
-    bidOrderBook.headOption match {
+    bidOrders.orderBook.headOption match {
       case Some(topBid) =>
         if (incoming.crosses(topBid)) {
           matchWithTopBid(incoming)
         } else {
-          askOrderBook += incoming
+          askOrders.orderBook += incoming
         }
-      case None => askOrderBook += incoming  // bid book might be empty!
+      case None => askOrders.orderBook += incoming  // bid book might be empty!
     }
   }
 
@@ -92,7 +92,7 @@ case class DoubleAuctionMechanism(instrument: SecurityLike) extends Actor
     */
   def matchWithTopBid(incoming: AskOrderLike): Unit = {
 
-    val topBid = bidOrderBook.dequeue()  // remove top bid from the queue!
+    val topBid = bidOrders.orderBook.dequeue()  // remove top bid from the queue!
     val price = incoming.formPrice(topBid)
     val excessDemand = topBid.quantity - incoming.quantity
 
@@ -118,7 +118,7 @@ case class DoubleAuctionMechanism(instrument: SecurityLike) extends Actor
     */
   def matchWithTopAsk(incoming: BidOrderLike): Unit = {
 
-    val topAsk = askOrderBook.dequeue() // remove top ask from the queue!
+    val topAsk = askOrders.orderBook.dequeue() // remove top ask from the queue!
     val price = incoming.formPrice(topAsk)
     val excessDemand = incoming.quantity - topAsk.quantity
 
@@ -146,7 +146,7 @@ case class DoubleAuctionMechanism(instrument: SecurityLike) extends Actor
     * @param quantity quantity involved in the filled order.
     */
   def generatePartialFill(ask: AskOrderLike, bid: BidOrderLike, price: Double, quantity: Double): Unit = {
-    val partialFill = PartialFill(ask.tradingPartyRef, bid.tradingPartyRef, instrument, price, quantity)
+    val partialFill = PartialFill(ask.tradingPartyRef, bid.tradingPartyRef, tradable, price, quantity)
     updateReferencePrice(price)
     context.parent ! partialFill
   }
@@ -159,7 +159,7 @@ case class DoubleAuctionMechanism(instrument: SecurityLike) extends Actor
     * @param quantity quantity involved in the filled order.
     */
   def generateTotalFill(ask: AskOrderLike, bid: BidOrderLike, price: Double, quantity: Double): Unit = {
-    val totalFill = TotalFill(ask.tradingPartyRef, bid.tradingPartyRef, instrument, price, quantity)
+    val totalFill = TotalFill(ask.tradingPartyRef, bid.tradingPartyRef, tradable, price, quantity)
     updateReferencePrice(price)
     context.parent ! totalFill
   }

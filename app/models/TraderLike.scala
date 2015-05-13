@@ -16,6 +16,8 @@ limitations under the License.
 
 package models
 
+import java.util.UUID
+
 import akka.actor.{ActorLogging, ActorRef, Actor}
 
 
@@ -31,6 +33,8 @@ trait TraderLike {
       market ! generateNewOrder()
   }
 
+  //def cancelExistingOrder(): Unit
+
   def decideAskPrice(): Double
 
   def decideBidPrice(): Double
@@ -39,9 +43,9 @@ trait TraderLike {
 
   def decideBidQuantity(): Double
 
-  def generateNewAskOrder(): AskOrderLike
+  def generateNewAskOrder(id: UUID): AskOrderLike
 
-  def generateNewBidOrder(): BidOrderLike
+  def generateNewBidOrder(id: UUID): BidOrderLike
 
   def generateNewOrder(): OrderLike
 

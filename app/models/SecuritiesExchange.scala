@@ -46,14 +46,14 @@ class SecuritiesExchange extends ExchangeLike
     /** Route order for a security to the market on which security is traded. */
     def select(message: Any, routees: immutable.IndexedSeq[Routee]): Routee = {
       message match {
-        case order: OrderLike => ActorRefRoutee(context.child(order.instrument.symbol).get)
+        case order: OrderLike => ActorRefRoutee(context.child(order.tradable.symbol).get)
       }
     }
 
   }
 
   def receive: Receive = {
-    case order: OrderLike => context.child(order.instrument.symbol) match {
+    case order: OrderLike => context.child(order.tradable.symbol) match {
       case Some(market) =>  // exchange has a market for the instrument
         router.route(order, sender())
         sender() ! OrderAccepted
