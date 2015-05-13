@@ -16,18 +16,35 @@ limitations under the License.
 
 package models
 
+import java.util.UUID
+
 
 case class SecuritiesMarket(instrument: SecurityLike) extends MarketLike
   with AuctionMechanismProvider
   with ClearingMechanismProvider {
 
   def receive: Receive = {
-    case order: OrderLike => auctionMechanism forward order
+    case order: OrderLike =>
+      order.tradingPartyRef ! OrderAccepted(order.id)
+      auctionMechanism forward order
       log.info(s",${System.nanoTime()}" + order.toString)
-    case fill: FillLike =>
-      log.info(s",${System.nanoTime()}" + fill.toString)
+    case fill: FilledOrderLike =>
+      fill.seller ! OrderFilled(fill.askOrderId)
+      fill.buyer ! OrderFilled(fill.bidOrderId)
       clearingMechanism forward fill
+      log.info(s",${System.nanoTime()}" + fill.toString)
   }
 
 }
+
+
+
+case class OrderAccepted(id: UUID)
+
+
+case class OrderFilled(id: UUID)
+
+
+case class OrderRejected(id: UUID)
+
 

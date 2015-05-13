@@ -490,9 +490,9 @@ class DoubleAuctionMechanismSpec extends TestKit(ActorSystem("Securities-Exchang
 
       Then("a single total fill is generated at the limit order ask price.")
 
-      val fill = TotalFill(seller, buyer, testInstrument, askPrice, askQuantity)
+      val fill = TotalFilledOrder(ask1.id, seller, bid1.id, buyer, testInstrument, askPrice, askQuantity)
       // expect a TotalFill to be generated
-      securitiesMarket.expectMsg[TotalFill](fill)
+      securitiesMarket.expectMsg[TotalFilledOrder](fill)
 
     }
 
@@ -521,10 +521,10 @@ class DoubleAuctionMechanismSpec extends TestKit(ActorSystem("Securities-Exchang
 
       Then("a single partial fill is generated at the limit order ask price")
 
-      val fill = PartialFill(seller, buyer, testInstrument, askPrice, askQuantity)
+      val fill = PartialFilledOrder(ask1.id, seller, bid1.id, buyer, testInstrument, askPrice, askQuantity)
 
       // expect a PartialFill to be generated
-      securitiesMarket.expectMsg[PartialFill](fill)
+      securitiesMarket.expectMsg[PartialFilledOrder](fill)
 
     }
 
@@ -553,8 +553,8 @@ class DoubleAuctionMechanismSpec extends TestKit(ActorSystem("Securities-Exchang
 
       Then("a single partial fill is generated at the limit order ask price")
 
-      val fill = PartialFill(seller, buyer, testInstrument, askPrice, bidQuantity)
-      securitiesMarket.expectMsg[PartialFill](fill)
+      val fill = PartialFilledOrder(ask1.id, seller, bid1.id, buyer, testInstrument, askPrice, bidQuantity)
+      securitiesMarket.expectMsg[PartialFilledOrder](fill)
 
     }
 
@@ -589,10 +589,10 @@ class DoubleAuctionMechanismSpec extends TestKit(ActorSystem("Securities-Exchang
 
       Then("one partial fill and one total fill should be generated")
 
-      val fill1 = PartialFill(seller1, buyer, testInstrument, askPrice1, askQuantity1)
-      val fill2 = TotalFill(seller2, buyer, testInstrument, askPrice2, askQuantity2)
-      securitiesMarket.expectMsg[PartialFill](fill1)
-      securitiesMarket.expectMsg[TotalFill](fill2)
+      val fill1 = PartialFilledOrder(ask1.id, seller1, bid1.id, buyer, testInstrument, askPrice1, askQuantity1)
+      val fill2 = TotalFilledOrder(ask2.id, seller2, bid1.id, buyer, testInstrument, askPrice2, askQuantity2)
+      securitiesMarket.expectMsg[PartialFilledOrder](fill1)
+      securitiesMarket.expectMsg[TotalFilledOrder](fill2)
 
     }
 
@@ -628,10 +628,10 @@ class DoubleAuctionMechanismSpec extends TestKit(ActorSystem("Securities-Exchang
 
       Then("two partial fills should be generated")
 
-      val fill1 = PartialFill(seller1, buyer, testInstrument, askPrice1, askQuantity1)
-      val fill2 = PartialFill(seller2, buyer, testInstrument, askPrice2, askQuantity2)
-      securitiesMarket.expectMsg[PartialFill](fill1)
-      securitiesMarket.expectMsg[PartialFill](fill2)
+      val fill1 = PartialFilledOrder(ask1.id, seller1, bid1.id, buyer, testInstrument, askPrice1, askQuantity1)
+      val fill2 = PartialFilledOrder(ask2.id, seller2, bid1.id, buyer, testInstrument, askPrice2, askQuantity2)
+      securitiesMarket.expectMsg[PartialFilledOrder](fill1)
+      securitiesMarket.expectMsg[PartialFilledOrder](fill2)
 
     }
 
@@ -666,11 +666,11 @@ class DoubleAuctionMechanismSpec extends TestKit(ActorSystem("Securities-Exchang
 
       Then("two partial fills should be generated")
       //CHECK THIS!!
-      val fill1 = PartialFill(seller1, buyer, testInstrument, askPrice1, askQuantity1)
+      val fill1 = PartialFilledOrder(ask1.id, seller1, bid1.id, buyer, testInstrument, askPrice1, askQuantity1)
       val residualBidQuantity = bidQuantity - askQuantity1
-      val fill2 = PartialFill(seller2, buyer, testInstrument, askPrice2, residualBidQuantity)
-      securitiesMarket.expectMsg[PartialFill](fill1)
-      securitiesMarket.expectMsg[PartialFill](fill2)
+      val fill2 = PartialFilledOrder(ask2.id, seller2, bid1.id, buyer, testInstrument, askPrice2, residualBidQuantity)
+      securitiesMarket.expectMsg[PartialFilledOrder](fill1)
+      securitiesMarket.expectMsg[PartialFilledOrder](fill2)
 
     }
 
@@ -727,10 +727,10 @@ class DoubleAuctionMechanismSpec extends TestKit(ActorSystem("Securities-Exchang
 
       Then("a single partial fill is generated at the limit order bid price")
 
-      val fill = PartialFill(seller, buyer, testInstrument, bidPrice, bidQuantity)
+      val fill = PartialFilledOrder(ask1.id, seller, bid1.id, buyer, testInstrument, bidPrice, bidQuantity)
 
       // expect a PartialFill to be generated
-      securitiesMarket.expectMsg[PartialFill](fill)
+      securitiesMarket.expectMsg[PartialFilledOrder](fill)
 
     }
 
@@ -759,8 +759,8 @@ class DoubleAuctionMechanismSpec extends TestKit(ActorSystem("Securities-Exchang
 
       Then("a single partial fill is generated at the limit order bid price")
 
-      val fill = PartialFill(seller, buyer, testInstrument, bidPrice, askQuantity)
-      securitiesMarket.expectMsg[PartialFill](fill)
+      val fill = PartialFilledOrder(ask1.id, seller, bid1.id, buyer, testInstrument, bidPrice, askQuantity)
+      securitiesMarket.expectMsg[PartialFilledOrder](fill)
 
     }
 
@@ -795,10 +795,10 @@ class DoubleAuctionMechanismSpec extends TestKit(ActorSystem("Securities-Exchang
 
       Then("one partial fill and one total fill should be generated")
 
-      val fill1 = PartialFill(seller, buyer2, testInstrument, bidPrice2, bidQuantity2)
-      val fill2 = TotalFill(seller, buyer1, testInstrument, bidPrice1, bidQuantity1)
-      securitiesMarket.expectMsg[PartialFill](fill1)
-      securitiesMarket.expectMsg[TotalFill](fill2)
+      val fill1 = PartialFilledOrder(ask1.id, seller, bid2.id, buyer2, testInstrument, bidPrice2, bidQuantity2)
+      val fill2 = TotalFilledOrder(ask1.id, seller, bid1.id, buyer1, testInstrument, bidPrice1, bidQuantity1)
+      securitiesMarket.expectMsg[PartialFilledOrder](fill1)
+      securitiesMarket.expectMsg[TotalFilledOrder](fill2)
 
     }
 
@@ -834,10 +834,10 @@ class DoubleAuctionMechanismSpec extends TestKit(ActorSystem("Securities-Exchang
 
       Then("two partial fills should be generated")
 
-      val fill1 = PartialFill(seller, buyer1, testInstrument, bidPrice1, bidQuantity1)
-      val fill2 = PartialFill(seller, buyer2, testInstrument, bidPrice2, bidQuantity2)
-      securitiesMarket.expectMsg[PartialFill](fill1)
-      securitiesMarket.expectMsg[PartialFill](fill2)
+      val fill1 = PartialFilledOrder(ask1.id, seller, bid1.id, buyer1, testInstrument, bidPrice1, bidQuantity1)
+      val fill2 = PartialFilledOrder(ask1.id, seller, bid2.id, buyer2, testInstrument, bidPrice2, bidQuantity2)
+      securitiesMarket.expectMsg[PartialFilledOrder](fill1)
+      securitiesMarket.expectMsg[PartialFilledOrder](fill2)
 
     }
 
@@ -872,11 +872,11 @@ class DoubleAuctionMechanismSpec extends TestKit(ActorSystem("Securities-Exchang
 
       Then("two partial fills should be generated")
 
-      val fill1 = PartialFill(seller, buyer1, testInstrument, bidPrice1, bidQuantity1)
+      val fill1 = PartialFilledOrder(ask1.id, seller, bid1.id, buyer1, testInstrument, bidPrice1, bidQuantity1)
       val residualAskQuantity = askQuantity - bidQuantity1
-      val fill2 = PartialFill(seller, buyer2, testInstrument, bidPrice2, residualAskQuantity)
-      securitiesMarket.expectMsg[PartialFill](fill1)
-      securitiesMarket.expectMsg[PartialFill](fill2)
+      val fill2 = PartialFilledOrder(ask1.id, seller, bid2.id, buyer2, testInstrument, bidPrice2, residualAskQuantity)
+      securitiesMarket.expectMsg[PartialFilledOrder](fill1)
+      securitiesMarket.expectMsg[PartialFilledOrder](fill2)
 
     }
 

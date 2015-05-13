@@ -1,3 +1,5 @@
+import java.util.UUID
+
 import akka.actor.{ActorRef, ActorSystem}
 import akka.testkit.{ImplicitSender, TestProbe, TestActorRef, TestKit}
 import models._
@@ -107,7 +109,7 @@ class NoiseTraderSpec extends TestKit(ActorSystem("NoiseTraderSpec")) with
 
       When("NoiseTrader generates a new order")
 
-      val order = noiseTrader.generateNewOrder()
+      val order = noiseTrader.generateNewOrder(UUID.randomUUID())
 
       Then("the generated order has type OrderLike.")
 
@@ -134,26 +136,6 @@ class NoiseTraderSpec extends TestKit(ActorSystem("NoiseTraderSpec")) with
       noiseTraderRef ! StartTrading
 
       Then("the NoiseTrader should start sending orders to the market.")
-
-      market.expectMsgType[OrderLike]
-
-    }
-
-    scenario("NoiseTrader should generate a new order on receipt of an OrderReceived message.") {
-
-      Given("An existing NoiseTrader")
-
-      val market = TestProbe()
-      val noiseTraderRef = TestActorRef(generateNoiseTrader(market.ref))
-
-      val assets = generateRandomAsset("GOOG")
-      noiseTraderRef ! assets
-
-      When("A NoiseTrader receives an OrderAccepted message")
-
-      noiseTraderRef ! OrderAccepted
-
-      Then("the NoiseTrader should send a new order to the market.")
 
       market.expectMsgType[OrderLike]
 

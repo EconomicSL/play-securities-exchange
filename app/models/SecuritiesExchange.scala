@@ -56,15 +56,9 @@ class SecuritiesExchange extends ExchangeLike
     case order: OrderLike => context.child(order.tradable.symbol) match {
       case Some(market) =>  // exchange has a market for the instrument
         router.route(order, sender())
-        sender() ! OrderAccepted
       case None =>  // exchange does not have a market for the instrument
-        sender() ! OrderRejected
+        sender() ! OrderRejected(order.id)
     }
   }
 
 }
-
-
-case object OrderAccepted
-
-case object OrderRejected

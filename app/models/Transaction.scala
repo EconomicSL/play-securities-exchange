@@ -18,12 +18,12 @@ package models
 
 
 /** Represents a cleared transaction between a buyer and a seller. */
-case class Transaction(fill: FillLike) {
+case class Transaction(fill: FilledOrderLike) {
 
   override def toString: String = {
-    s",${fill.askTradingPartyRef.path.name}," +
-    s"${fill.bidTradingPartyRef.path.name}," +
-    s"$getClass,${fill.instrument}," +
+    s",${fill.seller.path.name}," +
+    s"${fill.buyer.path.name}," +
+    s"$getClass,${fill.tradable}," +
     s"${fill.price},${fill.quantity}"
   }
 

@@ -146,7 +146,7 @@ case class DoubleAuctionMechanism(tradable: SecurityLike) extends Actor
     * @param quantity quantity involved in the filled order.
     */
   def generatePartialFill(ask: AskOrderLike, bid: BidOrderLike, price: Double, quantity: Double): Unit = {
-    val partialFill = PartialFill(ask.tradingPartyRef, bid.tradingPartyRef, tradable, price, quantity)
+    val partialFill = PartialFilledOrder(ask.id, ask.tradingPartyRef, bid.id, bid.tradingPartyRef, tradable, price, quantity)
     updateReferencePrice(price)
     context.parent ! partialFill
   }
@@ -159,7 +159,7 @@ case class DoubleAuctionMechanism(tradable: SecurityLike) extends Actor
     * @param quantity quantity involved in the filled order.
     */
   def generateTotalFill(ask: AskOrderLike, bid: BidOrderLike, price: Double, quantity: Double): Unit = {
-    val totalFill = TotalFill(ask.tradingPartyRef, bid.tradingPartyRef, tradable, price, quantity)
+    val totalFill = TotalFilledOrder(ask.id, ask.tradingPartyRef, bid.id, bid.tradingPartyRef, tradable, price, quantity)
     updateReferencePrice(price)
     context.parent ! totalFill
   }

@@ -42,7 +42,7 @@ class CCPClearingMechanism extends ClearingMechanismLike
 
   /** Central counter-party (CCP) clearing mechanism behavior. */
   val clearingMechanismBehavior: Receive = {
-    case fill: FillLike =>
+    case fill: FilledOrderLike =>
       val novatedFills = novate(fill)
       novatedFills foreach(novatedFill => bilateralClearingMechanism ! novatedFill)
   }
@@ -58,13 +58,13 @@ class CCPClearingMechanism extends ClearingMechanismLike
     * @return a list of two FillLikes - one between each of the original trading
     *         counterparties and the central counterparty.
     */
-  def novate(fill: FillLike): List[FillLike] = fill match {
-    case fill: PartialFill =>
-      List(PartialFill(self, fill.bidTradingPartyRef, fill.instrument, fill.price, fill.quantity),
-           PartialFill(fill.askTradingPartyRef, self, fill.instrument, fill.price, fill.quantity))
-    case fill: TotalFill =>
-      List(TotalFill(self, fill.bidTradingPartyRef, fill.instrument, fill.price, fill.quantity),
-           TotalFill(fill.askTradingPartyRef, self, fill.instrument, fill.price, fill.quantity))
+  def novate(fill: FilledOrderLike): List[FilledOrderLike] = fill match {
+    case fill: PartialFilledOrder =>
+      List(PartialFilledOrder(fill.askOrderId, self, fill.bidOrderId, fill.buyer, fill.tradable, fill.price, fill.quantity),
+           PartialFilledOrder(fill.askOrderId, fill.seller, fill.bidOrderId, self, fill.tradable, fill.price, fill.quantity))
+    case fill: TotalFilledOrder =>
+      List(TotalFilledOrder(fill.askOrderId, self, fill.bidOrderId, fill.buyer, fill.tradable, fill.price, fill.quantity),
+           TotalFilledOrder(fill.askOrderId, fill.seller, fill.bidOrderId, self, fill.tradable, fill.price, fill.quantity))
   }
 
   def receive: Receive = {

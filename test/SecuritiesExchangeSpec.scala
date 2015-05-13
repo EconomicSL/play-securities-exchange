@@ -56,17 +56,25 @@ class SecuritiesExchangeSpec extends TestKit(ActorSystem("Securities-Exchange-Sp
       Then("the buyer should receive securities and the seller should receive payment.")
 
       // generate messages that should be received by seller
+      val askOrderAcceptance = OrderAccepted(ask1.id)
+      val askOrderFilled = OrderFilled(ask1.id)
       val requestAssets = AssetsRequest(testInstrument, ask1.quantity)
       val payment = Payment(ask1.limitPrice * ask1.quantity)
 
       // generate messages that should be received by buyer
+      val bidOrderAcceptance = OrderAccepted(bid1.id)
+      val bidOrderFilled = OrderFilled(bid1.id)
       val requestPayment = PaymentRequest(ask1.limitPrice * ask1.quantity)
       val assets = Assets(testInstrument, ask1.quantity)
 
       // tests...
+      seller.expectMsg(askOrderAcceptance)
+      seller.expectMsg(askOrderFilled)
       seller.expectMsg(requestAssets)
       seller.reply(Success(assets))
 
+      buyer.expectMsg(bidOrderAcceptance)
+      buyer.expectMsg(bidOrderFilled)
       buyer.expectMsg(requestPayment)
       buyer.reply(Success(payment))
 
