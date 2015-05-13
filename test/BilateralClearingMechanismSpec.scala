@@ -1,3 +1,5 @@
+import java.util.UUID
+
 import akka.actor.{ActorRef, Props, ActorSystem}
 import akka.testkit.{TestProbe, TestActorRef, TestKit}
 import models._
@@ -21,23 +23,23 @@ class BilateralClearingMechanismSpec extends TestKit(ActorSystem("NoiseTraderSpe
                                 bidTradingPartyRef: ActorRef,
                                 instrument: Stock,
                                 maxPrice: Double = 1e6,
-                                maxQuantity: Int = 10000): FillLike = {
+                                maxQuantity: Int = 10000): FilledOrderLike = {
     val price = generateRandomPrice()
     val quantity = generateRandomQuantity()
 
-    PartialFill(askTradingPartyRef, bidTradingPartyRef, instrument, price, quantity)
+    PartialFilledOrder(UUID.randomUUID(), askTradingPartyRef, UUID.randomUUID(), bidTradingPartyRef, instrument, price, quantity)
   }
 
   def generateRandomTotalFill(askTradingPartyRef: ActorRef,
                               bidTradingPartyRef: ActorRef,
                               instrument: Stock,
                               maxPrice: Double = 1e6,
-                              maxQuantity: Int = 10000): FillLike = {
+                              maxQuantity: Int = 10000): FilledOrderLike = {
 
     val price = generateRandomPrice()
     val quantity = generateRandomQuantity()
 
-    TotalFill(askTradingPartyRef, bidTradingPartyRef, instrument, price, quantity)
+    TotalFilledOrder(UUID.randomUUID(), askTradingPartyRef, UUID.randomUUID(), bidTradingPartyRef, instrument, price, quantity)
 
   }
 
@@ -66,7 +68,7 @@ class BilateralClearingMechanismSpec extends TestKit(ActorSystem("NoiseTraderSpe
 
       Then("AskTradingParty should receive a request for Securities")
 
-      val securitiesRequest = AssetsRequest(fill.instrument, fill.quantity)
+      val securitiesRequest = AssetsRequest(fill.tradable, fill.quantity)
       askTradingParty.expectMsg(securitiesRequest)
 
       Then("BidTradingParty should receive a request for Payment")
@@ -89,7 +91,7 @@ class BilateralClearingMechanismSpec extends TestKit(ActorSystem("NoiseTraderSpe
 
       Then("AskTradingParty should receive a request for Securities")
 
-      val securitiesRequest = AssetsRequest(fill.instrument, fill.quantity)
+      val securitiesRequest = AssetsRequest(fill.tradable, fill.quantity)
       askTradingParty.expectMsg(securitiesRequest)
 
       Then("BidTradingParty should receive a request for Payment")

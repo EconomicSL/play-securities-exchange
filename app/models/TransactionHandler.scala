@@ -23,7 +23,7 @@ import scala.util.{Failure, Success, Try}
 
 object TransactionHandler {
 
-  def props(fill: FillLike): Props = {
+  def props(fill: FilledOrderLike): Props = {
     Props(new TransactionHandler(fill))
   }
 
@@ -33,14 +33,14 @@ object TransactionHandler {
   *
   * @param fill ???
   */
-class TransactionHandler(fill: FillLike) extends Actor
+class TransactionHandler(fill: FilledOrderLike) extends Actor
   with ActorLogging {
 
   /* Primary constructor */
-  val seller = fill.askTradingPartyRef
-  val buyer = fill.bidTradingPartyRef
+  val seller = fill.seller
+  val buyer = fill.buyer
 
-  seller ! AssetsRequest(fill.instrument, fill.quantity)
+  seller ! AssetsRequest(fill.tradable, fill.quantity)
   buyer ! PaymentRequest(fill.price * fill.quantity)
 
   /* Only evaluated if necessary! */

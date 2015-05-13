@@ -16,6 +16,8 @@ limitations under the License.
 
 package models
 
+import java.util.UUID
+
 import akka.actor.ActorRef
 
 
@@ -24,13 +26,15 @@ import akka.actor.ActorRef
   * A LimitAskOrder represents an order to sell a certain quantity of shares of a
   * specific security at prices greater than or equal to some limit price.
   *
+  * @param id Unique identifier for the order.
   * @param tradingPartyRef ActorRef for the trading party submitting the order.
-  * @param instrument Security for which the order is being placed.
+  * @param tradable Security for which the order is being placed.
   * @param limitPrice Limit price for the order.
   * @param quantity Desired quantity of the security.
   */
-case class LimitAskOrder(tradingPartyRef: ActorRef,
-                         instrument: SecurityLike,
+case class LimitAskOrder(id: UUID,
+                         tradingPartyRef: ActorRef,
+                         tradable: SecurityLike,
                          limitPrice: Double,
                          quantity: Double) extends
   AskOrderLike with
@@ -64,12 +68,12 @@ case class LimitAskOrder(tradingPartyRef: ActorRef,
     * @return new limit order ask.
     */
   def split(newQuantity: Double): AskOrderLike = {
-    LimitAskOrder(tradingPartyRef, instrument, limitPrice, newQuantity)
+    LimitAskOrder(id, tradingPartyRef, tradable, limitPrice, newQuantity)
   }
 
   /** String representation of a limit order. */
   override def toString: String = {
-    s",${tradingPartyRef.path.name},$getClass,$instrument,$limitPrice,$quantity"
+    s",$id,${tradingPartyRef.path.name},$getClass,$tradable,$limitPrice,$quantity"
   }
 
 }

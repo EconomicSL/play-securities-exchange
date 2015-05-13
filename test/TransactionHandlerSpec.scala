@@ -1,3 +1,5 @@
+import java.util.UUID
+
 import akka.actor.{ActorRef, ActorSystem}
 import akka.testkit.{TestActorRef, TestProbe, TestKit}
 import models._
@@ -35,24 +37,24 @@ class TransactionHandlerSpec extends TestKit(ActorSystem("TransactionHandlerSpec
   def generateRandomPartialFill(askTradingPartyRef: ActorRef,
                                 bidTradingPartyRef: ActorRef,
                                 maxPrice: Double = 1e6,
-                                maxQuantity: Int = 10000): PartialFill = {
+                                maxQuantity: Int = 10000): PartialFilledOrder = {
     val instrument = generateRandomInstrument(maxQuantity)
     val price = generateRandomPrice(maxPrice)
     val quantity = generateRandomQuantity(maxQuantity)
 
-    PartialFill(askTradingPartyRef, bidTradingPartyRef, instrument, price, quantity)
+    PartialFilledOrder(UUID.randomUUID(), askTradingPartyRef, UUID.randomUUID(), bidTradingPartyRef, instrument, price, quantity)
   }
 
   def generateRandomTotalFill(askTradingPartyRef: ActorRef,
                               bidTradingPartyRef: ActorRef,
                               maxPrice: Double = 1e6,
-                              maxQuantity: Int = 10000): TotalFill = {
+                              maxQuantity: Int = 10000): TotalFilledOrder = {
 
     val instrument = generateRandomInstrument(maxQuantity)
     val price = generateRandomPrice(maxPrice)
     val quantity = generateRandomQuantity(maxQuantity)
 
-    TotalFill(askTradingPartyRef, bidTradingPartyRef, instrument, price, quantity)
+    TotalFilledOrder(UUID.randomUUID(), askTradingPartyRef, UUID.randomUUID(), bidTradingPartyRef, instrument, price, quantity)
 
   }
 
@@ -72,7 +74,7 @@ class TransactionHandlerSpec extends TestKit(ActorSystem("TransactionHandlerSpec
 
       Then("TransactionHandler should send requests for payment and securities.")
 
-      val securitiesRequest = AssetsRequest(fill.instrument, fill.quantity)
+      val securitiesRequest = AssetsRequest(fill.tradable, fill.quantity)
       askTradingParty.expectMsg(securitiesRequest)
 
       val paymentRequest = PaymentRequest(fill.price * fill.quantity)
@@ -94,7 +96,7 @@ class TransactionHandlerSpec extends TestKit(ActorSystem("TransactionHandlerSpec
 
       Then("TransactionHandler should send requests for payment and securities.")
 
-      val securitiesRequest = AssetsRequest(fill.instrument, fill.quantity)
+      val securitiesRequest = AssetsRequest(fill.tradable, fill.quantity)
       askTradingParty.expectMsg(securitiesRequest)
 
       val paymentRequest = PaymentRequest(fill.price * fill.quantity)
@@ -115,7 +117,7 @@ class TransactionHandlerSpec extends TestKit(ActorSystem("TransactionHandlerSpec
 
       val transactionHandlerRef = TestActorRef(new TransactionHandler(fill))
 
-      val securitiesRequest = AssetsRequest(fill.instrument, fill.quantity)
+      val securitiesRequest = AssetsRequest(fill.tradable, fill.quantity)
       askTradingParty.expectMsg(securitiesRequest)
 
       val paymentRequest = PaymentRequest(fill.price * fill.quantity)
@@ -128,7 +130,7 @@ class TransactionHandlerSpec extends TestKit(ActorSystem("TransactionHandlerSpec
 
       When("TransactionHandler receives Securities")
 
-      val securities = Assets(fill.instrument, fill.quantity)
+      val securities = Assets(fill.tradable, fill.quantity)
       transactionHandlerRef ! Success(securities)
 
       Then("TransactionHandler should forward Payment to the seller")
@@ -151,7 +153,7 @@ class TransactionHandlerSpec extends TestKit(ActorSystem("TransactionHandlerSpec
 
       val transactionHandlerRef = TestActorRef(new TransactionHandler(fill))
 
-      val securitiesRequest = AssetsRequest(fill.instrument, fill.quantity)
+      val securitiesRequest = AssetsRequest(fill.tradable, fill.quantity)
       askTradingParty.expectMsg(securitiesRequest)
 
       val paymentRequest = PaymentRequest(fill.price * fill.quantity)
@@ -159,7 +161,7 @@ class TransactionHandlerSpec extends TestKit(ActorSystem("TransactionHandlerSpec
 
       When("TransactionHandler receives Securities")
 
-      val securities = Assets(fill.instrument, fill.quantity)
+      val securities = Assets(fill.tradable, fill.quantity)
       transactionHandlerRef ! Success(securities)
 
       When("TransactionHandler receives Payment")
@@ -187,7 +189,7 @@ class TransactionHandlerSpec extends TestKit(ActorSystem("TransactionHandlerSpec
 
       val transactionHandlerRef = TestActorRef(new TransactionHandler(fill))
 
-      val securitiesRequest = AssetsRequest(fill.instrument, fill.quantity)
+      val securitiesRequest = AssetsRequest(fill.tradable, fill.quantity)
       askTradingParty.expectMsg(securitiesRequest)
 
       val paymentRequest = PaymentRequest(fill.price * fill.quantity)
@@ -199,7 +201,7 @@ class TransactionHandlerSpec extends TestKit(ActorSystem("TransactionHandlerSpec
 
       When("TransactionHandler receives Securities")
 
-      val securities = Assets(fill.instrument, fill.quantity)
+      val securities = Assets(fill.tradable, fill.quantity)
       transactionHandlerRef ! Success(securities)
 
       Then("TransactionHandler should refund securities to the seller")
@@ -219,7 +221,7 @@ class TransactionHandlerSpec extends TestKit(ActorSystem("TransactionHandlerSpec
 
       val transactionHandlerRef = TestActorRef(new TransactionHandler(fill))
 
-      val securitiesRequest = AssetsRequest(fill.instrument, fill.quantity)
+      val securitiesRequest = AssetsRequest(fill.tradable, fill.quantity)
       askTradingParty.expectMsg(securitiesRequest)
 
       val paymentRequest = PaymentRequest(fill.price * fill.quantity)
@@ -227,7 +229,7 @@ class TransactionHandlerSpec extends TestKit(ActorSystem("TransactionHandlerSpec
 
       When("TransactionHandler receives Securities")
 
-      val securities = Assets(fill.instrument, fill.quantity)
+      val securities = Assets(fill.tradable, fill.quantity)
       transactionHandlerRef ! Success(securities)
 
       When("TransactionHandler receives InsufficientFundsException")
@@ -252,7 +254,7 @@ class TransactionHandlerSpec extends TestKit(ActorSystem("TransactionHandlerSpec
 
       val transactionHandlerRef = TestActorRef(new TransactionHandler(fill))
 
-      val securitiesRequest = AssetsRequest(fill.instrument, fill.quantity)
+      val securitiesRequest = AssetsRequest(fill.tradable, fill.quantity)
       askTradingParty.expectMsg(securitiesRequest)
 
       val paymentRequest = PaymentRequest(fill.price * fill.quantity)
@@ -284,7 +286,7 @@ class TransactionHandlerSpec extends TestKit(ActorSystem("TransactionHandlerSpec
 
       val transactionHandlerRef = TestActorRef(new TransactionHandler(fill))
 
-      val securitiesRequest = AssetsRequest(fill.instrument, fill.quantity)
+      val securitiesRequest = AssetsRequest(fill.tradable, fill.quantity)
       askTradingParty.expectMsg(securitiesRequest)
 
       val paymentRequest = PaymentRequest(fill.price * fill.quantity)
@@ -316,7 +318,7 @@ class TransactionHandlerSpec extends TestKit(ActorSystem("TransactionHandlerSpec
 
       val transactionHandlerRef = TestActorRef(new TransactionHandler(fill))
 
-      val securitiesRequest = AssetsRequest(fill.instrument, fill.quantity)
+      val securitiesRequest = AssetsRequest(fill.tradable, fill.quantity)
       askTradingParty.expectMsg(securitiesRequest)
 
       val paymentRequest = PaymentRequest(fill.price * fill.quantity)

@@ -16,9 +16,12 @@ limitations under the License.
 
 package models
 
+import java.util.UUID
+
 import akka.actor.{ActorLogging, ActorRef, Actor}
 import com.typesafe.config.ConfigFactory
 
+import scala.collection.mutable
 import scala.util.Random
 
 
@@ -35,6 +38,8 @@ case class NoiseTrader(market: ActorRef,
   val maxQuantity: Double = conf.getDouble("maxQuantity")
 
   val askOrderProbability: Double = conf.getDouble("askOrderProbability")
+
+  val outstandingOrders: mutable.Buffer[UUID] = mutable.Buffer.empty[UUID]
 
   def decideAskPrice(): Double = {
     prng.nextDouble() * maxPrice
@@ -61,19 +66,22 @@ case class NoiseTrader(market: ActorRef,
     securities.keys.toList(idx).asInstanceOf[SecurityLike]
   }
 
-  def generateNewAskOrder(): AskOrderLike = {
-    LimitAskOrder(self, decideInstrument(), decideAskPrice(), decideAskQuantity())
+  def generateNewAskOrder(id: UUID): AskOrderLike = {
+    LimitAskOrder(id, self, decideInstrument(), decideAskPrice(), decideAskQuantity())
   }
 
-  def generateNewBidOrder(): BidOrderLike = {
-    LimitBidOrder(self, decideInstrument(), decideBidPrice(), decideBidQuantity())
+  def generateNewBidOrder(id: UUID): BidOrderLike = {
+    LimitBidOrder(id, self, decideInstrument(), decideBidPrice(), decideBidQuantity())
   }
 
-  def generateNewOrder(): OrderLike = {
+  def generateNewOrder(id: UUID): OrderLike = {
+    // generate an order id
+    val id = UUID.randomUUID()
+
     if (prng.nextDouble() < askOrderProbability) {
-      generateNewAskOrder()
+      generateNewAskOrder(id)
     } else {
-      generateNewBidOrder()
+      generateNewBidOrder(id)
     }
   }
 

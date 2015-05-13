@@ -16,19 +16,37 @@ limitations under the License.
 
 package models
 
+import java.util.UUID
+
 import akka.actor.{ActorLogging, ActorRef, Actor}
+
+import scala.collection.mutable
 
 
 trait TraderLike {
   this: Actor with ActorLogging =>
 
+  val outstandingOrders: mutable.Buffer[UUID]
+
   val market: ActorRef
 
   val traderLikeBehavior: Receive = {
     case StartTrading =>
-      market ! generateNewOrder()
-    case OrderAccepted =>
-      market ! generateNewOrder()
+      val orderId = generateNewOrderId()
+      market ! generateNewOrder(orderId)
+    case OrderAccepted(orderId) =>
+      outstandingOrders += orderId
+      market ! generateNewOrder(orderId)
+    case OrderFilled(orderId) =>
+      val idx = outstandingOrders.indexOf(orderId)
+      outstandingOrders.remove(idx)
+      //market ! generateNewOrder(orderId)
+    case OrderRejected(orderId) =>
+      throw new RuntimeException("Gasp! An order has been rejected!")
+  }
+
+  def cancelExistingOrder(id: UUID): Unit = {
+    market ! CancelOrder(id)
   }
 
   def decideAskPrice(): Double
@@ -39,14 +57,21 @@ trait TraderLike {
 
   def decideBidQuantity(): Double
 
-  def generateNewAskOrder(): AskOrderLike
+  def generateNewAskOrder(id: UUID): AskOrderLike
 
-  def generateNewBidOrder(): BidOrderLike
+  def generateNewBidOrder(id: UUID): BidOrderLike
 
-  def generateNewOrder(): OrderLike
+  def generateNewOrder(id: UUID): OrderLike
+
+  def generateNewOrderId(): UUID = {
+    UUID.randomUUID()
+  }
 
 }
 
 
 case object StartTrading
+
+
+case class CancelOrder(id: UUID)
 

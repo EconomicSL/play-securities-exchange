@@ -21,7 +21,7 @@ package models
 class BilateralClearingMechanism extends ClearingMechanismLike {
 
   val clearingMechanismBehavior: Receive = {
-    case fill: FillLike =>
+    case fill: FilledOrderLike =>
       context.actorOf(TransactionHandler.props(fill))
   }
 

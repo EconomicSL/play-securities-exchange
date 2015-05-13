@@ -1,3 +1,5 @@
+import java.util.UUID
+
 import akka.actor.ActorSystem
 import akka.testkit.{TestProbe, TestKit, TestActorRef}
 import models._
@@ -42,29 +44,37 @@ class SecuritiesExchangeSpec extends TestKit(ActorSystem("Securities-Exchange-Sp
 
       val askPrice = generateRandomPrice()
       val askQuantity = generateRandomQuantity()
-      val ask1 = LimitAskOrder(seller.ref, testInstrument, askPrice, askQuantity)
+      val ask1 = LimitAskOrder(UUID.randomUUID(), seller.ref, testInstrument, askPrice, askQuantity)
       securitiesExchange ! ask1
 
       When("a crossing limit order bid for the same quantity of shares is received")
 
       val bidPrice = (1 + Random.nextDouble()) * askPrice
-      val bid1 = LimitBidOrder(buyer.ref, testInstrument, bidPrice, askQuantity)
+      val bid1 = LimitBidOrder(UUID.randomUUID(), buyer.ref, testInstrument, bidPrice, askQuantity)
       securitiesExchange ! bid1
 
       Then("the buyer should receive securities and the seller should receive payment.")
 
       // generate messages that should be received by seller
+      val askOrderAcceptance = OrderAccepted(ask1.id)
+      val askOrderFilled = OrderFilled(ask1.id)
       val requestAssets = AssetsRequest(testInstrument, ask1.quantity)
       val payment = Payment(ask1.limitPrice * ask1.quantity)
 
       // generate messages that should be received by buyer
+      val bidOrderAcceptance = OrderAccepted(bid1.id)
+      val bidOrderFilled = OrderFilled(bid1.id)
       val requestPayment = PaymentRequest(ask1.limitPrice * ask1.quantity)
       val assets = Assets(testInstrument, ask1.quantity)
 
       // tests...
+      seller.expectMsg(askOrderAcceptance)
+      seller.expectMsg(askOrderFilled)
       seller.expectMsg(requestAssets)
       seller.reply(Success(assets))
 
+      buyer.expectMsg(bidOrderAcceptance)
+      buyer.expectMsg(bidOrderFilled)
       buyer.expectMsg(requestPayment)
       buyer.reply(Success(payment))
 
